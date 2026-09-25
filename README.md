@@ -468,3 +468,35 @@ Interfaz PySide6
 
 La interfaz nunca accede directamente a las tablas para aplicar reglas de
 negocio.
+
+## Transacciones, excepciones e integridad
+
+La aplicación utiliza transacciones SQLite para proteger las operaciones
+que requieren múltiples escrituras.
+
+Una transacción se confirma mediante COMMIT solamente cuando todas sus
+operaciones finalizan correctamente.
+
+Si ocurre cualquier excepción, la aplicación ejecuta ROLLBACK antes de
+cerrar la conexión.
+
+La creación de series recurrentes es atómica. Una serie, sus reservaciones
+y sus relaciones se almacenan como una sola operación lógica. Si cualquier
+inserción falla, ningún elemento de la serie permanece almacenado.
+
+Los eventos de auditoría generados por triggers forman parte de la misma
+transacción y también se revierten cuando la operación principal falla.
+
+Cada conexión SQLite activa:
+
+- claves foráneas mediante `PRAGMA foreign_keys = ON`;
+- un tiempo de espera ante bloqueos mediante `PRAGMA busy_timeout`.
+
+La integridad puede verificarse mediante:
+
+- `PRAGMA integrity_check`.
+- `PRAGMA foreign_key_check`.
+
+La capa de interfaz captura errores de validación, reglas de negocio y
+errores principales de SQLite para mostrarlos mediante mensajes de Qt sin
+cerrar abruptamente la aplicación.

@@ -3,28 +3,48 @@ Operaciones de persistencia relacionadas
 con series de reservaciones recurrentes.
 """
 
-import sqlite3
 from dataclasses import replace
 
-from aplicacion.modelos import Reservacion
-from aplicacion.persistencia.base_datos import obtener_conexion
+from aplicacion.modelos import (
+    Reservacion,
+)
+
+from aplicacion.persistencia.base_datos import (
+    obtener_conexion,
+)
+
+from aplicacion.persistencia.transacciones import (
+    transaccion,
+)
 
 
-def _fila_a_reservacion(fila):
+def _fila_a_reservacion(
+    fila,
+):
     """
-    Convierte una fila de SQLite en Reservacion.
+    Convierte una fila SQLite en Reservacion.
     """
 
     if fila is None:
         return None
 
     return Reservacion(
-        carne_estudiante=fila["carne_estudiante"],
-        codigo_sala=fila["codigo_sala"],
+        carne_estudiante=(
+            fila["carne_estudiante"]
+        ),
+        codigo_sala=(
+            fila["codigo_sala"]
+        ),
         fecha=fila["fecha"],
-        hora_inicio=fila["hora_inicio"],
-        duracion_horas=fila["duracion_horas"],
-        cantidad_personas=fila["cantidad_personas"],
+        hora_inicio=(
+            fila["hora_inicio"]
+        ),
+        duracion_horas=(
+            fila["duracion_horas"]
+        ),
+        cantidad_personas=(
+            fila["cantidad_personas"]
+        ),
         estado=fila["estado"],
         id=fila["id"],
     )
@@ -41,18 +61,17 @@ def guardar_serie_recurrente(
     ruta_base_datos=None,
 ):
     """
-    Guarda una serie y todas sus ocurrencias
-    dentro de una unica transaccion.
+    Guarda una serie recurrente y todas sus
+    ocurrencias dentro de una unica transaccion.
 
-    Si falla cualquier insercion, no se guarda
-    parcialmente la serie.
+    Si falla cualquier INSERT, se revierte toda
+    la operacion.
     """
 
-    conexion = obtener_conexion(
+    with transaccion(
         ruta_base_datos
-    )
+    ) as conexion:
 
-    try:
         cursor_serie = conexion.execute(
             """
             INSERT INTO series_recurrentes (
@@ -77,7 +96,9 @@ def guardar_serie_recurrente(
             ),
         )
 
-        serie_id = cursor_serie.lastrowid
+        serie_id = (
+            cursor_serie.lastrowid
+        )
 
         reservaciones_guardadas = []
 
@@ -109,7 +130,9 @@ def guardar_serie_recurrente(
                 ),
             )
 
-            reservacion_id = cursor.lastrowid
+            reservacion_id = (
+                cursor.lastrowid
+            )
 
             conexion.execute(
                 """
@@ -134,18 +157,12 @@ def guardar_serie_recurrente(
                 )
             )
 
-        conexion.commit()
-
-    except sqlite3.Error:
-        conexion.rollback()
-        raise
-
-    finally:
-        conexion.close()
-
     return {
-        "serie_id": serie_id,
-        "reservaciones": reservaciones_guardadas,
+        "serie_id":
+            serie_id,
+
+        "reservaciones":
+            reservaciones_guardadas,
     }
 
 
@@ -173,10 +190,14 @@ def obtener_serie_recurrente_por_id(
                 duracion_horas,
                 cantidad_personas,
                 total_ocurrencias
+
             FROM series_recurrentes
+
             WHERE id = ?
             """,
-            (serie_id,),
+            (
+                serie_id,
+            ),
         ).fetchone()
 
     finally:
@@ -185,7 +206,9 @@ def obtener_serie_recurrente_por_id(
     if fila is None:
         return None
 
-    return dict(fila)
+    return dict(
+        fila
+    )
 
 
 def listar_ocurrencias_serie(
@@ -193,8 +216,8 @@ def listar_ocurrencias_serie(
     ruta_base_datos=None,
 ):
     """
-    Devuelve todas las ocurrencias de una serie,
-    incluyendo su estado actual.
+    Devuelve todas las ocurrencias pertenecientes
+    a una serie recurrente.
     """
 
     conexion = obtener_conexion(
@@ -223,9 +246,12 @@ def listar_ocurrencias_serie(
 
             WHERE o.serie_id = ?
 
-            ORDER BY o.numero_ocurrencia
+            ORDER BY
+                o.numero_ocurrencia
             """,
-            (serie_id,),
+            (
+                serie_id,
+            ),
         ).fetchall()
 
     finally:
@@ -237,10 +263,14 @@ def listar_ocurrencias_serie(
         resultado.append(
             {
                 "numero_ocurrencia":
-                    fila["numero_ocurrencia"],
+                    fila[
+                        "numero_ocurrencia"
+                    ],
 
                 "reservacion":
-                    _fila_a_reservacion(fila),
+                    _fila_a_reservacion(
+                        fila
+                    ),
             }
         )
 
@@ -253,7 +283,7 @@ def obtener_ocurrencia_serie(
     ruta_base_datos=None,
 ):
     """
-    Obtiene una ocurrencia concreta de una serie.
+    Obtiene una ocurrencia concreta.
     """
 
     conexion = obtener_conexion(
@@ -297,10 +327,14 @@ def obtener_ocurrencia_serie(
 
     return {
         "numero_ocurrencia":
-            fila["numero_ocurrencia"],
+            fila[
+                "numero_ocurrencia"
+            ],
 
         "reservacion":
-            _fila_a_reservacion(fila),
+            _fila_a_reservacion(
+                fila
+            ),
     }
 
 
@@ -311,30 +345,39 @@ def cancelar_ocurrencias_posteriores(
     ruta_base_datos=None,
 ):
     """
-    Cancela en una sola transaccion las ocurrencias
-    posteriores a una ocurrencia de referencia.
+    Cancela las ocurrencias posteriores a una
+    ocurrencia de referencia.
 
-    Puede incluir tambien la ocurrencia seleccionada
-    cuando incluir_seleccionada=True.
+    La modificacion completa se realiza dentro
+    de una transaccion.
     """
 
-    operador = ">=" if incluir_seleccionada else ">"
-
-    conexion = obtener_conexion(
-        ruta_base_datos
+    operador = (
+        ">="
+        if incluir_seleccionada
+        else ">"
     )
 
-    try:
+    with transaccion(
+        ruta_base_datos
+    ) as conexion:
+
         consulta = f"""
             UPDATE reservaciones
+
             SET estado = 'cancelada'
 
             WHERE estado = 'activa'
+
               AND id IN (
                   SELECT reservacion_id
+
                   FROM ocurrencias_recurrentes
+
                   WHERE serie_id = ?
-                    AND numero_ocurrencia {operador} ?
+
+                    AND numero_ocurrencia
+                        {operador} ?
               )
         """
 
@@ -346,15 +389,8 @@ def cancelar_ocurrencias_posteriores(
             ),
         )
 
-        conexion.commit()
-
-        cantidad = cursor.rowcount
-
-    except sqlite3.Error:
-        conexion.rollback()
-        raise
-
-    finally:
-        conexion.close()
+        cantidad = (
+            cursor.rowcount
+        )
 
     return cantidad

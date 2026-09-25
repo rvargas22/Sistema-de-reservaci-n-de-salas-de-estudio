@@ -2,6 +2,8 @@
 Utilidades compartidas por las vistas de la interfaz.
 """
 
+import sqlite3
+
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QHeaderView,
@@ -51,6 +53,10 @@ def configurar_tabla(
         QHeaderView.ResizeMode.Stretch
     )
 
+    tabla.setAlternatingRowColors(
+        True
+    )
+
 
 def cargar_tabla(
     tabla,
@@ -58,8 +64,7 @@ def cargar_tabla(
     campos,
 ):
     """
-    Carga una coleccion de diccionarios u objetos
-    dentro de un QTableWidget.
+    Carga diccionarios u objetos en una tabla.
     """
 
     tabla.setRowCount(
@@ -80,6 +85,7 @@ def cargar_tabla(
                     campo,
                     "",
                 )
+
             else:
                 valor = getattr(
                     fila,
@@ -104,8 +110,7 @@ def seleccionar_combo_por_dato(
     dato,
 ):
     """
-    Selecciona en un QComboBox el elemento cuyo
-    userData coincide con el dato indicado.
+    Selecciona un elemento usando su userData.
     """
 
     indice = combo.findData(
@@ -123,8 +128,8 @@ def mostrar_error(
     error,
 ):
     """
-    Muestra un error de negocio, validacion
-    o un error inesperado.
+    Presenta los errores de forma comprensible
+    sin cerrar la aplicacion.
     """
 
     if isinstance(
@@ -140,15 +145,65 @@ def mostrar_error(
             str(error),
         )
 
-    else:
+        return
+
+    if isinstance(
+        error,
+        sqlite3.IntegrityError,
+    ):
         QMessageBox.critical(
             padre,
-            "Error inesperado",
+            "Error de integridad",
             (
-                "Ocurrió un error inesperado.\n\n"
-                f"{error}"
+                "La base de datos rechazó la "
+                "operación porque produciría "
+                "información inconsistente.\n\n"
+                f"Detalle: {error}"
             ),
         )
+
+        return
+
+    if isinstance(
+        error,
+        sqlite3.OperationalError,
+    ):
+        QMessageBox.critical(
+            padre,
+            "Error de base de datos",
+            (
+                "No fue posible completar la "
+                "operación en SQLite.\n\n"
+                f"Detalle: {error}"
+            ),
+        )
+
+        return
+
+    if isinstance(
+        error,
+        sqlite3.DatabaseError,
+    ):
+        QMessageBox.critical(
+            padre,
+            "Problema con la base de datos",
+            (
+                "SQLite detectó un problema "
+                "durante la operación.\n\n"
+                f"Detalle: {error}"
+            ),
+        )
+
+        return
+
+    QMessageBox.critical(
+        padre,
+        "Error inesperado",
+        (
+            "Ocurrió un error inesperado.\n\n"
+            f"{error}"
+        ),
+    )
 
 
 def mostrar_exito(
@@ -156,7 +211,7 @@ def mostrar_exito(
     mensaje,
 ):
     """
-    Muestra un mensaje de confirmacion.
+    Muestra una confirmacion.
     """
 
     QMessageBox.information(

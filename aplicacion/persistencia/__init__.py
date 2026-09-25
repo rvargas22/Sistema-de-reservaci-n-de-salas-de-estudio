@@ -10,6 +10,13 @@ from aplicacion.persistencia.inicializador import (
     inicializar_base_datos,
 )
 
+from aplicacion.persistencia.integridad import (
+    obtener_errores_claves_foraneas,
+    obtener_estado_integridad,
+    obtener_resultado_integridad,
+    verificar_integridad_base_datos,
+)
+
 from aplicacion.persistencia.repositorio_auditoria import (
     listar_eventos_auditoria,
     obtener_evento_auditoria,
@@ -50,10 +57,21 @@ from aplicacion.persistencia.repositorio_salas import (
     obtener_sala_por_codigo,
 )
 
+from aplicacion.persistencia.transacciones import (
+    transaccion,
+)
+
 
 __all__ = [
     "obtener_conexion",
     "inicializar_base_datos",
+
+    "transaccion",
+
+    "obtener_resultado_integridad",
+    "obtener_errores_claves_foraneas",
+    "obtener_estado_integridad",
+    "verificar_integridad_base_datos",
 
     "guardar_estudiante",
     "obtener_estudiante_por_carne",
