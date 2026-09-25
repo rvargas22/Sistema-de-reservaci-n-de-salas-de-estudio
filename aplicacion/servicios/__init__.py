@@ -9,6 +9,14 @@ from aplicacion.servicios.servicio_estudiantes import (
     registrar_estudiante,
 )
 
+from aplicacion.servicios.servicio_reservaciones import (
+    buscar_reservaciones_estudiante,
+    cancelar_reservacion,
+    consultar_historial_reservaciones,
+    crear_reservacion,
+    modificar_reservacion,
+)
+
 from aplicacion.servicios.servicio_salas import (
     buscar_sala,
     consultar_salas,
@@ -22,8 +30,15 @@ __all__ = [
     "buscar_estudiante",
     "consultar_estudiantes",
     "modificar_estudiante",
+
     "registrar_sala",
     "buscar_sala",
     "consultar_salas",
     "modificar_sala",
+
+    "crear_reservacion",
+    "consultar_historial_reservaciones",
+    "buscar_reservaciones_estudiante",
+    "cancelar_reservacion",
+    "modificar_reservacion",
 ]

@@ -220,3 +220,29 @@ nueva capacidad.
 
 Las reservaciones canceladas y las correspondientes a fechas pasadas no
 bloquean una reducción de capacidad.
+
+## Gestión de reservaciones
+
+El módulo de reservaciones permite:
+
+- crear nuevas reservaciones;
+- consultar el historial completo;
+- buscar reservaciones por carné de estudiante;
+- cancelar reservaciones;
+- modificar reservaciones activas.
+
+Antes de guardar o modificar una reservación se aplican las reglas de
+negocio definidas para estudiantes, salas, fechas, horarios, duración,
+capacidad y disponibilidad.
+
+Las reservaciones canceladas permanecen almacenadas en el historial y
+dejan de bloquear la disponibilidad de la sala.
+
+Una reservación cancelada no puede modificarse.
+
+Las modificaciones conservan el identificador original. La aplicación
+valida completamente los nuevos datos antes de actualizar SQLite; si
+alguna validación falla, la reservación almacenada permanece sin cambios.
+
+Los identificadores son generados automáticamente por SQLite y no se
+reutilizan.
