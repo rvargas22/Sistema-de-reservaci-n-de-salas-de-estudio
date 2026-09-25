@@ -169,3 +169,27 @@ Entre las principales reglas implementadas se encuentran:
 
 La lógica de negocio puede probarse directamente sin automatizar clics
 sobre la interfaz gráfica.
+
+## Gestión de estudiantes
+
+El módulo de estudiantes permite:
+
+- registrar nuevos estudiantes;
+- consultar todos los estudiantes registrados;
+- buscar un estudiante por carné;
+- modificar nombre;
+- modificar correo;
+- cambiar el estado entre activo e inactivo.
+
+El carné funciona como identificador del estudiante y no se modifica
+después del registro.
+
+Antes de almacenar un estudiante se aplican las validaciones definidas
+para carné, nombre, correo y estado.
+
+Los carnés se normalizan a mayúsculas y su unicidad no distingue entre
+mayúsculas y minúsculas.
+
+Los estudiantes inactivos permanecen registrados en el sistema y
+continúan apareciendo en las consultas e historial, pero posteriormente
+no podrán generar nuevas reservaciones.
