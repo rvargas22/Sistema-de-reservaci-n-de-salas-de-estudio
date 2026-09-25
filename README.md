@@ -145,26 +145,26 @@ persistencia.
 
 La carpeta `aplicacion/validaciones` contiene las reglas relacionadas con:
 
-- estudiantes;
-- salas;
+- estudiantes.
+- salas.
 - reservaciones.
 
 Entre las principales reglas implementadas se encuentran:
 
-- carné de estudiante de exactamente 10 caracteres alfanuméricos;
-- normalización de espacios iniciales y finales;
-- validación de nombre y correo;
-- capacidad positiva de salas;
-- estudiante activo para reservar;
-- sala disponible para reservar;
-- fechas no pasadas;
-- inicio en horas completas;
-- horario de funcionamiento entre 08:00 y 20:00;
-- duración de una o dos horas;
-- cantidad de personas dentro de la capacidad;
-- detección de superposición de reservaciones;
-- reservaciones consecutivas permitidas;
-- máximo de tres reservaciones activas presentes o futuras;
+- carné de estudiante de exactamente 10 caracteres alfanuméricos.
+- normalización de espacios iniciales y finales.
+- validación de nombre y correo.
+- capacidad positiva de salas.
+- estudiante activo para reservar.
+- sala disponible para reservar.
+- fechas no pasadas.
+- inicio en horas completas.
+- horario de funcionamiento entre 08:00 y 20:00.
+- duración de una o dos horas.
+- cantidad de personas dentro de la capacidad.
+- detección de superposición de reservaciones.
+- reservaciones consecutivas permitidas.
+- máximo de tres reservaciones activas presentes o futuras.
 - las reservaciones canceladas no bloquean disponibilidad.
 
 La lógica de negocio puede probarse directamente sin automatizar clics
@@ -174,11 +174,11 @@ sobre la interfaz gráfica.
 
 El módulo de estudiantes permite:
 
-- registrar nuevos estudiantes;
-- consultar todos los estudiantes registrados;
-- buscar un estudiante por carné;
-- modificar nombre;
-- modificar correo;
+- registrar nuevos estudiantes.
+- consultar todos los estudiantes registrados.
+- buscar un estudiante por carné.
+- modificar nombre.
+- modificar correo.
 - cambiar el estado entre activo e inactivo.
 
 El carné funciona como identificador del estudiante y no se modifica
@@ -198,11 +198,11 @@ no podrán generar nuevas reservaciones.
 
 El módulo de salas permite:
 
-- registrar nuevas salas;
-- consultar todas las salas;
-- buscar una sala por código;
-- modificar el nombre;
-- modificar la capacidad;
+- registrar nuevas salas.
+- consultar todas las salas.
+- buscar una sala por código.
+- modificar el nombre.
+- modificar la capacidad.
 - cambiar el estado entre disponible y fuera de servicio.
 
 El código de una sala funciona como identificador y es inmutable después
@@ -225,10 +225,10 @@ bloquean una reducción de capacidad.
 
 El módulo de reservaciones permite:
 
-- crear nuevas reservaciones;
-- consultar el historial completo;
-- buscar reservaciones por carné de estudiante;
-- cancelar reservaciones;
+- crear nuevas reservaciones.
+- consultar el historial completo.
+- buscar reservaciones por carné de estudiante.
+- cancelar reservaciones.
 - modificar reservaciones activas.
 
 Antes de guardar o modificar una reservación se aplican las reglas de
