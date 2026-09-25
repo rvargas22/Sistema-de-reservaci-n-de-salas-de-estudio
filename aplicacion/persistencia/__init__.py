@@ -10,6 +10,11 @@ from aplicacion.persistencia.inicializador import (
     inicializar_base_datos,
 )
 
+from aplicacion.persistencia.repositorio_auditoria import (
+    listar_eventos_auditoria,
+    obtener_evento_auditoria,
+)
+
 from aplicacion.persistencia.repositorio_estudiantes import (
     actualizar_estudiante,
     guardar_estudiante,
@@ -69,11 +74,14 @@ __all__ = [
     "actualizar_reservacion",
     "marcar_reservacion_cancelada",
     "consultar_reservaciones_panel",
+    "consultar_reservaciones_por_rango",
 
     "guardar_serie_recurrente",
     "obtener_serie_recurrente_por_id",
     "listar_ocurrencias_serie",
     "obtener_ocurrencia_serie",
     "cancelar_ocurrencias_posteriores",
-    "consultar_reservaciones_por_rango",
+
+    "listar_eventos_auditoria",
+    "obtener_evento_auditoria",
 ]

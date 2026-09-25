@@ -95,7 +95,9 @@ def crear_tablas(conexion):
             nombre TEXT NOT NULL,
 
             capacidad INTEGER NOT NULL
-                CHECK (capacidad > 0),
+                CHECK (
+                    capacidad > 0
+                ),
 
             estado TEXT NOT NULL
                 DEFAULT 'disponible'
@@ -123,7 +125,10 @@ def crear_tablas(conexion):
 
             duracion_horas INTEGER NOT NULL
                 CHECK (
-                    duracion_horas IN (1, 2)
+                    duracion_horas IN (
+                        1,
+                        2
+                    )
                 ),
 
             cantidad_personas INTEGER NOT NULL
@@ -140,12 +145,21 @@ def crear_tablas(conexion):
                     )
                 ),
 
-            FOREIGN KEY (carne_estudiante)
-                REFERENCES estudiantes(carne),
+            FOREIGN KEY (
+                carne_estudiante
+            )
+                REFERENCES estudiantes(
+                    carne
+                ),
 
-            FOREIGN KEY (codigo_sala)
-                REFERENCES salas(codigo)
+            FOREIGN KEY (
+                codigo_sala
+            )
+                REFERENCES salas(
+                    codigo
+                )
         );
+
 
         CREATE TABLE IF NOT EXISTS series_recurrentes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -162,7 +176,10 @@ def crear_tablas(conexion):
 
             duracion_horas INTEGER NOT NULL
                 CHECK (
-                    duracion_horas IN (1, 2)
+                    duracion_horas IN (
+                        1,
+                        2
+                    )
                 ),
 
             cantidad_personas INTEGER NOT NULL
@@ -172,14 +189,23 @@ def crear_tablas(conexion):
 
             total_ocurrencias INTEGER NOT NULL
                 CHECK (
-                    total_ocurrencias BETWEEN 2 AND 8
+                    total_ocurrencias
+                    BETWEEN 2 AND 8
                 ),
 
-            FOREIGN KEY (carne_estudiante)
-                REFERENCES estudiantes(carne),
+            FOREIGN KEY (
+                carne_estudiante
+            )
+                REFERENCES estudiantes(
+                    carne
+                ),
 
-            FOREIGN KEY (codigo_sala)
-                REFERENCES salas(codigo)
+            FOREIGN KEY (
+                codigo_sala
+            )
+                REFERENCES salas(
+                    codigo
+                )
         );
 
 
@@ -198,20 +224,57 @@ def crear_tablas(conexion):
                 numero_ocurrencia
             ),
 
-            FOREIGN KEY (serie_id)
-                REFERENCES series_recurrentes(id),
+            FOREIGN KEY (
+                serie_id
+            )
+                REFERENCES series_recurrentes(
+                    id
+                ),
 
-            FOREIGN KEY (reservacion_id)
-                REFERENCES reservaciones(id)
+            FOREIGN KEY (
+                reservacion_id
+            )
+                REFERENCES reservaciones(
+                    id
+                )
         );
 
 
-        CREATE INDEX IF NOT EXISTS
-            idx_ocurrencias_recurrentes_serie
-        ON ocurrencias_recurrentes (
-            serie_id,
-            numero_ocurrencia
+        CREATE TABLE IF NOT EXISTS auditoria (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            fecha_hora TEXT NOT NULL
+                DEFAULT (
+                    strftime(
+                        '%Y-%m-%dT%H:%M:%fZ',
+                        'now'
+                    )
+                ),
+
+            accion TEXT NOT NULL
+                CHECK (
+                    accion IN (
+                        'crear',
+                        'modificar',
+                        'cancelar'
+                    )
+                ),
+
+            entidad TEXT NOT NULL
+                CHECK (
+                    entidad IN (
+                        'estudiante',
+                        'sala',
+                        'reservacion',
+                        'serie_recurrente'
+                    )
+                ),
+
+            identificador TEXT NOT NULL,
+
+            detalle TEXT NOT NULL
         );
+
 
         CREATE INDEX IF NOT EXISTS
             idx_reservaciones_sala_fecha
@@ -229,16 +292,39 @@ def crear_tablas(conexion):
             fecha,
             estado
         );
+
+
+        CREATE INDEX IF NOT EXISTS
+            idx_ocurrencias_recurrentes_serie
+        ON ocurrencias_recurrentes (
+            serie_id,
+            numero_ocurrencia
+        );
+
+
+        CREATE INDEX IF NOT EXISTS
+            idx_auditoria_fecha
+        ON auditoria (
+            fecha_hora
+        );
+
+
+        CREATE INDEX IF NOT EXISTS
+            idx_auditoria_entidad
+        ON auditoria (
+            entidad,
+            identificador
+        );
         """
     )
 
 
 def cargar_datos_iniciales(conexion):
     """
-    Carga los estudiantes y las salas iniciales.
+    Carga los estudiantes y salas iniciales.
 
-    Si los registros ya existen, no se duplican ni se
-    sobrescriben.
+    Si los registros ya existen, no se duplican
+    ni se sobrescriben.
     """
 
     conexion.executemany(
@@ -272,18 +358,265 @@ def cargar_datos_iniciales(conexion):
     )
 
 
-def inicializar_base_datos(ruta_base_datos=None):
+def crear_disparadores_auditoria(
+    conexion,
+):
+    """
+    Crea los disparadores responsables de registrar
+    automaticamente las acciones exitosas.
+
+    Tambien protege el historial de auditoria contra
+    modificaciones y eliminaciones.
+    """
+
+    conexion.executescript(
+        """
+        CREATE TRIGGER IF NOT EXISTS
+            trg_auditoria_estudiante_crear
+
+        AFTER INSERT ON estudiantes
+
+        BEGIN
+            INSERT INTO auditoria (
+                accion,
+                entidad,
+                identificador,
+                detalle
+            )
+            VALUES (
+                'crear',
+                'estudiante',
+                NEW.carne,
+                'Estudiante registrado: '
+                    || NEW.carne
+            );
+        END;
+
+
+        CREATE TRIGGER IF NOT EXISTS
+            trg_auditoria_estudiante_modificar
+
+        AFTER UPDATE ON estudiantes
+
+        BEGIN
+            INSERT INTO auditoria (
+                accion,
+                entidad,
+                identificador,
+                detalle
+            )
+            VALUES (
+                'modificar',
+                'estudiante',
+                NEW.carne,
+                'Estudiante modificado: '
+                    || NEW.carne
+            );
+        END;
+
+
+        CREATE TRIGGER IF NOT EXISTS
+            trg_auditoria_sala_crear
+
+        AFTER INSERT ON salas
+
+        BEGIN
+            INSERT INTO auditoria (
+                accion,
+                entidad,
+                identificador,
+                detalle
+            )
+            VALUES (
+                'crear',
+                'sala',
+                NEW.codigo,
+                'Sala registrada: '
+                    || NEW.codigo
+            );
+        END;
+
+
+        CREATE TRIGGER IF NOT EXISTS
+            trg_auditoria_sala_modificar
+
+        AFTER UPDATE ON salas
+
+        BEGIN
+            INSERT INTO auditoria (
+                accion,
+                entidad,
+                identificador,
+                detalle
+            )
+            VALUES (
+                'modificar',
+                'sala',
+                NEW.codigo,
+                'Sala modificada: '
+                    || NEW.codigo
+            );
+        END;
+
+
+        CREATE TRIGGER IF NOT EXISTS
+            trg_auditoria_reservacion_crear
+
+        AFTER INSERT ON reservaciones
+
+        BEGIN
+            INSERT INTO auditoria (
+                accion,
+                entidad,
+                identificador,
+                detalle
+            )
+            VALUES (
+                'crear',
+                'reservacion',
+                CAST(
+                    NEW.id
+                    AS TEXT
+                ),
+                'Reservación creada: '
+                    || NEW.id
+            );
+        END;
+
+
+        CREATE TRIGGER IF NOT EXISTS
+            trg_auditoria_reservacion_modificar
+
+        AFTER UPDATE ON reservaciones
+
+        BEGIN
+            INSERT INTO auditoria (
+                accion,
+                entidad,
+                identificador,
+                detalle
+            )
+            VALUES (
+                CASE
+                    WHEN
+                        OLD.estado <> NEW.estado
+                        AND NEW.estado = 'cancelada'
+                    THEN
+                        'cancelar'
+
+                    ELSE
+                        'modificar'
+                END,
+
+                'reservacion',
+
+                CAST(
+                    NEW.id
+                    AS TEXT
+                ),
+
+                CASE
+                    WHEN
+                        OLD.estado <> NEW.estado
+                        AND NEW.estado = 'cancelada'
+                    THEN
+                        'Reservación cancelada: '
+                            || NEW.id
+
+                    ELSE
+                        'Reservación modificada: '
+                            || NEW.id
+                END
+            );
+        END;
+
+
+        CREATE TRIGGER IF NOT EXISTS
+            trg_auditoria_serie_crear
+
+        AFTER INSERT ON series_recurrentes
+
+        BEGIN
+            INSERT INTO auditoria (
+                accion,
+                entidad,
+                identificador,
+                detalle
+            )
+            VALUES (
+                'crear',
+                'serie_recurrente',
+                CAST(
+                    NEW.id
+                    AS TEXT
+                ),
+                'Serie recurrente creada: '
+                    || NEW.id
+            );
+        END;
+
+
+        CREATE TRIGGER IF NOT EXISTS
+            trg_auditoria_no_modificar
+
+        BEFORE UPDATE ON auditoria
+
+        BEGIN
+            SELECT RAISE(
+                ABORT,
+                'El historial de auditoria es de solo lectura.'
+            );
+        END;
+
+
+        CREATE TRIGGER IF NOT EXISTS
+            trg_auditoria_no_eliminar
+
+        BEFORE DELETE ON auditoria
+
+        BEGIN
+            SELECT RAISE(
+                ABORT,
+                'El historial de auditoria es de solo lectura.'
+            );
+        END;
+        """
+    )
+
+
+def inicializar_base_datos(
+    ruta_base_datos=None,
+):
     """
     Inicializa completamente la base de datos.
 
-    Crea las tablas, indices y datos iniciales.
+    Orden de inicializacion:
+
+    1. Crea tablas e indices.
+    2. Carga los datos iniciales.
+    3. Crea los disparadores de auditoria.
+
+    Este orden evita que la carga inicial de estudiantes
+    y salas se registre como una accion realizada durante
+    el uso normal de la aplicacion.
     """
 
-    conexion = obtener_conexion(ruta_base_datos)
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
-        crear_tablas(conexion)
-        cargar_datos_iniciales(conexion)
+        crear_tablas(
+            conexion
+        )
+
+        cargar_datos_iniciales(
+            conexion
+        )
+
+        crear_disparadores_auditoria(
+            conexion
+        )
 
         conexion.commit()
 

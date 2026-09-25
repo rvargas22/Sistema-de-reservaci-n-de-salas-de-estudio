@@ -2,6 +2,11 @@
 Servicios principales de la aplicacion.
 """
 
+from aplicacion.servicios.servicio_auditoria import (
+    consultar_evento_auditoria,
+    consultar_historial_auditoria,
+)
+
 from aplicacion.servicios.servicio_disponibilidad import (
     consultar_horarios_disponibles,
     verificar_disponibilidad,
@@ -26,6 +31,11 @@ from aplicacion.servicios.servicio_recurrencia import (
     crear_serie_recurrente,
 )
 
+from aplicacion.servicios.servicio_reportes import (
+    exportar_reporte_csv,
+    generar_reporte_reservaciones,
+)
+
 from aplicacion.servicios.servicio_reservaciones import (
     buscar_reservaciones_estudiante,
     cancelar_reservacion,
@@ -39,10 +49,6 @@ from aplicacion.servicios.servicio_salas import (
     consultar_salas,
     modificar_sala,
     registrar_sala,
-)
-from aplicacion.servicios.servicio_reportes import (
-    exportar_reporte_csv,
-    generar_reporte_reservaciones,
 )
 
 
@@ -71,7 +77,12 @@ __all__ = [
     "consultar_ocurrencias_serie",
     "cancelar_ocurrencia_recurrente",
     "cancelar_ocurrencias_futuras",
+
+    "consultar_panel",
+
     "generar_reporte_reservaciones",
     "exportar_reporte_csv",
-    "consultar_panel",
+
+    "consultar_historial_auditoria",
+    "consultar_evento_auditoria",
 ]

@@ -385,3 +385,37 @@ Si el usuario cancela la selección del destino, no se crea ningún archivo.
 
 La generación y exportación de reportes son operaciones de lectura y no
 modifican las reservaciones almacenadas.
+
+## Auditoría
+
+La aplicación mantiene un historial automático de acciones exitosas.
+
+La auditoría registra operaciones de creación, modificación y cancelación
+sobre las principales entidades del sistema.
+
+Cada evento contiene:
+
+- identificador del evento.
+- fecha y hora.
+- acción.
+- tipo de entidad.
+- identificador de la entidad.
+- detalle de la operación.
+
+La auditoría se implementa mediante triggers de SQLite. Esto permite que
+el evento se registre dentro de la misma transacción que modifica los
+datos.
+
+Si una operación falla o es rechazada por una validación, no se registra
+como acción exitosa.
+
+Las consultas y reportes no generan eventos de auditoría.
+
+Los datos iniciales cargados automáticamente al crear la base tampoco se
+registran como acciones del usuario.
+
+El historial de auditoría es de solo lectura.
+
+La aplicación no expone operaciones para modificar o eliminar eventos y
+SQLite contiene triggers que bloquean cualquier UPDATE o DELETE sobre la
+tabla de auditoría.
