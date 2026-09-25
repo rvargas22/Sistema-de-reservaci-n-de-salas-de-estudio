@@ -16,14 +16,14 @@ desarrollo realizadas con pytest.
 
 La suite contiene los siguientes niveles:
 
-- pruebas de persistencia;
-- pruebas de modelos;
-- pruebas de validaciones;
-- pruebas de servicios;
-- pruebas de reglas de negocio;
-- pruebas de interfaz estructural;
-- pruebas de transacciones e integridad;
-- pruebas de integración entre módulos;
+- pruebas de persistencia.
+- pruebas de modelos.
+- pruebas de validaciones.
+- pruebas de servicios.
+- pruebas de reglas de negocio.
+- pruebas de interfaz estructural.
+- pruebas de transacciones e integridad.
+- pruebas de integración entre módulos.
 - pruebas de contrato y arquitectura.
 
 La lógica de negocio se prueba directamente mediante servicios y no
@@ -101,20 +101,20 @@ de esos requisitos.
 
 La suite verifica:
 
-- claves foráneas activas;
-- restricciones CHECK;
-- rollback ante errores;
-- commit de operaciones exitosas;
-- cierre de conexiones;
-- atomicidad de series recurrentes;
-- rollback de auditoría;
-- PRAGMA integrity_check;
+- claves foráneas activas.
+- restricciones CHECK.
+- rollback ante errores.
+- commit de operaciones exitosas.
+- cierre de conexiones.
+- atomicidad de series recurrentes.
+- rollback de auditoría.
+- PRAGMA integrity_check.
 - PRAGMA foreign_key_check.
 
 Pruebas principales:
 
-- test_persistencia.py;
-- test_integridad_transacciones.py;
+- test_persistencia.py.
+- test_integridad_transacciones.py.
 - test_integracion_flujos.py.
 
 ---
@@ -126,14 +126,14 @@ La interfaz PySide6 se comprueba estructuralmente mediante
 
 Se verifica:
 
-- creación de la ventana principal;
-- existencia de siete módulos;
-- navegación;
-- carga de estudiantes;
-- carga de salas;
-- carga de opciones de disponibilidad;
-- carga de opciones de reservaciones;
-- existencia de reportes;
+- creación de la ventana principal.
+- existencia de siete módulos.
+- navegación.
+- carga de estudiantes.
+- carga de salas.
+- carga de opciones de disponibilidad.
+- carga de opciones de reservaciones.
+- existencia de reportes.
 - existencia de auditoría.
 
 Las reglas de negocio no se prueban mediante clics.
@@ -145,21 +145,21 @@ Las reglas de negocio no se prueban mediante clics.
 `test_integracion_flujos.py` comprueba, entre otros, los siguientes
 escenarios:
 
-1. estudiante → reservación → panel → reporte → auditoría;
-2. disponibilidad → reservación → cancelación → disponibilidad;
-3. modificación → persistencia → panel;
-4. estudiante inactivo → rechazo de reservación;
-5. sala fuera de servicio → rechazo de reservación;
-6. máximo de tres reservaciones activas;
-7. cancelación → liberación del límite de tres;
-8. continuidad de identificadores;
-9. recurrencia → ocurrencias → panel;
-10. cancelación individual dentro de una serie;
-11. conflicto recurrente sin guardado parcial;
-12. reporte CSV en UTF-8;
-13. filtros combinados del panel;
-14. modificación inválida sin alterar datos;
-15. persistencia después de reabrir conexión;
+1. estudiante → reservación → panel → reporte → auditoría.
+2. disponibilidad → reservación → cancelación → disponibilidad.
+3. modificación → persistencia → panel.
+4. estudiante inactivo → rechazo de reservación.
+5. sala fuera de servicio → rechazo de reservación.
+6. máximo de tres reservaciones activas.
+7. cancelación → liberación del límite de tres.
+8. continuidad de identificadores.
+9. recurrencia → ocurrencias → panel.
+10. cancelación individual dentro de una serie.
+11. conflicto recurrente sin guardado parcial.
+12. reporte CSV en UTF-8.
+13. filtros combinados del panel.
+14. modificación inválida sin alterar datos.
+15. persistencia después de reabrir conexión.
 16. integridad después de un flujo mixto.
 
 ---
@@ -168,10 +168,10 @@ escenarios:
 
 El Bloque 16 se considera aprobado cuando:
 
-- todas las pruebas de integración pasan;
-- todas las pruebas de contrato pasan;
-- no aparece ninguna regresión en las pruebas anteriores;
-- la suite completa finaliza sin fallos;
+- todas las pruebas de integración pasan.
+- todas las pruebas de contrato pasan.
+- no aparece ninguna regresión en las pruebas anteriores.
+- la suite completa finaliza sin fallos.
 - la matriz de cobertura queda disponible en `documentacion/`.
 
 RNF-09 y la revisión detallada de los requisitos no funcionales se
