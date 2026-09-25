@@ -1,0 +1,72 @@
+EVIDENCIA RNF-09 - RENDIMIENTO
+================================
+
+Equipo de prueba
+----------------
+Sistema: Darwin
+Versión del sistema: 27.0.0
+Arquitectura: arm64
+Procesador: arm
+Python: 3.13.3
+SQLite: 3.50.4
+
+Carga utilizada
+---------------
+Estudiantes: 1000
+Reservaciones: 5000
+Límite por consulta: 2.00 segundos
+Repeticiones por consulta: 3
+
+Resultados
+----------
+Consultar 1 000 estudiantes
+  mínimo: 0.001496 s
+  promedio: 0.001929 s
+  máximo: 0.002650 s
+  resultado: APROBADO
+
+Consultar salas
+  mínimo: 0.000186 s
+  promedio: 0.000201 s
+  máximo: 0.000219 s
+  resultado: APROBADO
+
+Panel completo con 5 000 reservaciones
+  mínimo: 0.019107 s
+  promedio: 0.019602 s
+  máximo: 0.020214 s
+  resultado: APROBADO
+
+Panel con filtros combinados
+  mínimo: 0.000378 s
+  promedio: 0.000949 s
+  máximo: 0.002055 s
+  resultado: APROBADO
+
+Buscar reservaciones por estudiante
+  mínimo: 0.000350 s
+  promedio: 0.000366 s
+  máximo: 0.000386 s
+  resultado: APROBADO
+
+Consultar disponibilidad
+  mínimo: 0.000450 s
+  promedio: 0.000490 s
+  máximo: 0.000549 s
+  resultado: APROBADO
+
+Generar reporte de 5 000 reservaciones
+  mínimo: 0.013629 s
+  promedio: 0.014090 s
+  máximo: 0.014483 s
+  resultado: APROBADO
+
+Consultar historial de auditoria
+  mínimo: 0.011255 s
+  promedio: 0.012315 s
+  máximo: 0.013421 s
+  resultado: APROBADO
+
+Resultado general
+-----------------
+APROBADO
