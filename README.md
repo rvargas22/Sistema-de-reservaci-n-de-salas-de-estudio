@@ -1,502 +1,504 @@
-# Sistema de reservacion de salas de estudio
+# Sistema de reservación de salas de estudio
 
-Proyecto final del curso TI3603 - Calidad en Sistemas de Informacion.
+Aplicación de escritorio desarrollada en Python con PySide6 y SQLite para
+la administración de estudiantes, salas y reservaciones de espacios de
+estudio.
 
-## Descripcion
+Proyecto desarrollado para el curso TI3603 — Calidad en Sistemas de
+Información del Tecnológico de Costa Rica.
 
-Aplicacion de escritorio para la gestion de estudiantes, salas y reservaciones
-de salas de estudio.
+## Versión
+
+La versión actual se encuentra identificada en el archivo:
+
+`VERSION`
+
+Versión candidata actual:
+
+`1.0.0-rc1`
+
+Esta versión corresponde a una versión candidata de la Fase 2 y debe
+superar la verificación final antes de considerarse versión definitiva.
 
 ## Requisitos
 
+Se requiere:
+
 - Python 3.10 o superior.
+- pip.
+- un entorno gráfico compatible con Qt.
+- Git, únicamente si se desea clonar el repositorio.
 
-## Estructura general
+SQLite no requiere instalación adicional, ya que se utiliza mediante el
+módulo `sqlite3` incluido con Python.
 
-- `aplicacion/modelos`: entidades principales del sistema.
-- `aplicacion/persistencia`: acceso y administracion de SQLite.
-- `aplicacion/servicios`: logica funcional del sistema.
-- `aplicacion/validaciones`: validaciones y reglas de negocio.
-- `aplicacion/interfaz`: interfaz grafica y navegacion.
-- `datos`: archivos de persistencia local.
-- `pruebas`: pruebas automatizadas.
-- `documentacion`: documentacion complementaria.
+## Dependencias
 
-## Ejecucion
+Las dependencias externas se encuentran declaradas en:
 
-Desde la raiz del proyecto:
+`requirements.txt`
+
+Actualmente se utilizan:
+
+- PySide6 para la interfaz gráfica.
+- pytest para las pruebas automatizadas.
+
+## Obtener el proyecto
+
+Repositorio:
+
+`https://github.com/rvargas22/Sistema-de-reservaci-n-de-salas-de-estudio`
+
+Clonar:
+
+```bash
+git clone https://github.com/rvargas22/Sistema-de-reservaci-n-de-salas-de-estudio.git
+```
+
+Entrar al directorio:
+
+```bash
+cd Sistema-de-reservaci-n-de-salas-de-estudio
+```
+
+## Crear el entorno virtual
+
+En macOS o Linux:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+En Windows PowerShell:
+
+```powershell
+py -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+En Windows CMD:
+
+```cmd
+py -m venv .venv
+.venv\Scripts\activate.bat
+```
+
+## Instalar dependencias
+
+Con el entorno virtual activado:
+
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+## Ejecutar la aplicación
+
+Ejecutar:
 
 ```bash
 python main.py
+```
 
-## Persistencia
+La primera ejecución crea automáticamente la base SQLite si todavía no
+existe.
 
-La aplicación utiliza SQLite como mecanismo de persistencia local.
-
-La base de datos se crea automáticamente en:
+La base de datos utilizada por defecto se encuentra en:
 
 `datos/reservaciones.db`
 
-Las tablas principales iniciales son:
+La aplicación no necesita modificar el código fuente para determinar esta
+ruta.
 
-- estudiantes
-- salas
-- reservaciones
+## Datos iniciales
 
-La aplicación carga automáticamente los estudiantes y salas iniciales
-cuando la base de datos se crea por primera vez.
+Al crear una base nueva se cargan los siguientes estudiantes:
 
-La inicialización puede ejecutarse varias veces sin duplicar los datos.
+| Carné | Nombre | Correo | Estado |
+|---|---|---|---|
+| A001234567 | Andrea Solano | andrea@universidad.ac.cr | activo |
+| B009876543 | Carlos Méndez | carlos@universidad.ac.cr | activo |
+| C004567890 | Daniela Rojas | daniela@universidad.ac.cr | inactivo |
 
-Las claves foráneas de SQLite se encuentran habilitadas para mantener
-la integridad referencial.
+También se cargan las siguientes salas:
 
-## Pruebas
+| Código | Nombre | Capacidad | Estado |
+|---|---|---:|---|
+| S01 | Sala Biblioteca 1 | 4 | disponible |
+| S02 | Sala Biblioteca 2 | 6 | disponible |
+| S03 | Laboratorio de estudio | 10 | disponible |
+| S04 | Sala multimedia | 8 | fuera_de_servicio |
+| S05 | Cubículo individual | 1 | disponible |
 
-Las pruebas automatizadas se ejecutan con:
+La inicialización es idempotente: ejecutar nuevamente la aplicación no
+debe duplicar estos registros.
 
-```bash
-pytest -v
+## Módulos de la interfaz
 
-## Modelos del dominio
+La aplicación utiliza PySide6 y dispone de siete módulos principales:
 
-La aplicación utiliza tres modelos principales:
+1. Panel de control.
+2. Gestión de estudiantes.
+3. Gestión de salas.
+4. Calendario y consulta de disponibilidad.
+5. Gestión de reservaciones y recurrencia.
+6. Reportes y exportación.
+7. Historial de acciones.
 
-### Estudiante
+La navegación se realiza desde el menú lateral de la ventana principal.
 
-Representa a los estudiantes registrados en el sistema.
+## Estudiantes
 
-Atributos principales:
+El módulo de estudiantes permite:
 
-- carné
-- nombre
-- correo
-- estado
+- registrar estudiantes.
+- consultar estudiantes.
+- modificar nombre y correo.
+- activar o inactivar estudiantes.
+- conservar el carné como identificador inmutable.
 
-Los estados utilizados son:
+Las validaciones se ejecutan en la capa de servicios y reglas de negocio,
+no directamente en la interfaz.
 
-- activo
-- inactivo
+## Salas
 
-### Sala
+El módulo de salas permite:
 
-Representa las salas que pueden ser utilizadas para reservaciones.
+- consultar salas.
+- registrar nuevas salas.
+- modificar nombre.
+- modificar capacidad.
+- cambiar el estado entre disponible y fuera de servicio.
 
-Atributos principales:
+El código de una sala existente no se modifica.
 
-- código
-- nombre
-- capacidad
-- estado
+## Disponibilidad
 
-Los estados utilizados son:
+La aplicación permite consultar horarios disponibles considerando:
 
-- disponible
-- fuera_de_servicio
+- sala.
+- fecha.
+- duración.
+- reservaciones activas existentes.
+- horario permitido.
+- superposición.
 
-### Reservación
+La consulta de disponibilidad no crea una reservación.
 
-Representa una reservación de una sala por parte de un estudiante.
+## Reservaciones
 
-Atributos principales:
+La aplicación permite:
 
-- identificador
-- carné del estudiante
-- código de sala
-- fecha
-- hora de inicio
-- duración
-- cantidad de personas
-- estado
+- crear reservaciones.
+- consultar historial.
+- modificar reservaciones activas.
+- cancelar reservaciones.
+- consultar por estudiante.
+- validar disponibilidad.
+- conservar reservaciones canceladas en el historial.
 
-Los estados utilizados son:
+Las operaciones aplican las reglas de negocio antes de modificar la base
+de datos.
 
-- activa
-- cancelada
+## Recurrencia
 
-El identificador de una reservación puede ser `None` antes de que el
-registro sea almacenado en SQLite.
+El sistema permite crear series de reservaciones semanales.
 
-## Identificadores de reservaciones
+Antes de guardar una serie se analizan sus ocurrencias.
 
-Los identificadores de las reservaciones son generados
-automáticamente por SQLite.
+También pueden cancelarse ocurrencias individuales o posteriores de una
+serie.
 
-La columna utilizada es:
+Las escrituras de una serie se realizan de forma transaccional para evitar
+datos parciales.
 
-`INTEGER PRIMARY KEY AUTOINCREMENT`
+## Panel de control
 
-La aplicación no calcula ni asigna manualmente los identificadores.
+El panel permite consultar reservaciones y utilizar filtros combinados por:
 
-Después de insertar una reservación se utiliza `lastrowid` para obtener
-el identificador generado por SQLite.
+- fecha.
+- sala.
+- estado.
 
-La secuencia se mantiene aunque la aplicación se cierre y se vuelva
-a ejecutar.
+La información se obtiene nuevamente desde SQLite al refrescar la vista.
 
-Una reservación cancelada conserva permanentemente su identificador.
-Las nuevas reservaciones reciben identificadores diferentes y los
-identificadores anteriores no se reutilizan.
+## Reportes
 
-## Validaciones y reglas de negocio
+La aplicación permite generar reportes de reservaciones para un rango de
+fechas.
 
-Las validaciones se encuentran separadas de la interfaz gráfica y de la
-persistencia.
+Los reportes pueden exportarse en formato CSV utilizando codificación
+UTF-8.
 
-La carpeta `aplicacion/validaciones` contiene las reglas relacionadas con:
+El archivo contiene encabezados y datos de estudiante, sala, fecha,
+horario, duración, cantidad de personas y estado.
 
-- estudiantes.
-- salas.
-- reservaciones.
+La cancelación del selector de destino no crea un archivo parcial.
 
-Entre las principales reglas implementadas se encuentran:
+## Auditoría
 
-- carné de estudiante de exactamente 10 caracteres alfanuméricos.
-- normalización de espacios iniciales y finales.
-- validación de nombre y correo.
-- capacidad positiva de salas.
-- estudiante activo para reservar.
-- sala disponible para reservar.
-- fechas no pasadas.
-- inicio en horas completas.
-- horario de funcionamiento entre 08:00 y 20:00.
-- duración de una o dos horas.
-- cantidad de personas dentro de la capacidad.
-- detección de superposición de reservaciones.
-- reservaciones consecutivas permitidas.
-- máximo de tres reservaciones activas presentes o futuras.
-- las reservaciones canceladas no bloquean disponibilidad.
+Las operaciones relevantes se registran automáticamente en un historial de
+auditoría.
+
+Los eventos contienen:
+
+- fecha y hora.
+- acción.
+- entidad.
+- identificador.
+- detalle.
+
+La auditoría se implementa mediante triggers de SQLite.
+
+El historial es de solo lectura y las operaciones rechazadas no se
+registran como acciones exitosas.
+
+## Arquitectura
+
+La aplicación mantiene separación entre responsabilidades.
+
+Estructura principal:
+
+```text
+aplicacion/
+├── interfaz/
+├── modelos/
+├── persistencia/
+├── servicios/
+└── validaciones/
+
+datos/
+documentacion/
+evidencias/
+pruebas/
+
+main.py
+requirements.txt
+VERSION
+pytest.ini
+README.md
+```
+
+Flujo principal:
+
+```text
+Interfaz PySide6
+       ↓
+Servicios
+       ↓
+Validaciones y reglas
+       ↓
+Persistencia SQLite
+```
 
 La lógica de negocio puede probarse directamente sin automatizar clics
 sobre la interfaz gráfica.
 
-## Gestión de estudiantes
+## Persistencia
 
-El módulo de estudiantes permite:
+El sistema utiliza SQLite mediante el módulo estándar:
 
-- registrar nuevos estudiantes.
-- consultar todos los estudiantes registrados.
-- buscar un estudiante por carné.
-- modificar nombre.
-- modificar correo.
-- cambiar el estado entre activo e inactivo.
+`sqlite3`
 
-El carné funciona como identificador del estudiante y no se modifica
-después del registro.
+Cada conexión activa claves foráneas.
 
-Antes de almacenar un estudiante se aplican las validaciones definidas
-para carné, nombre, correo y estado.
+Las operaciones críticas utilizan transacciones y rollback ante errores.
 
-Los carnés se normalizan a mayúsculas y su unicidad no distingue entre
-mayúsculas y minúsculas.
-
-Los estudiantes inactivos permanecen registrados en el sistema y
-continúan apareciendo en las consultas e historial, pero posteriormente
-no podrán generar nuevas reservaciones.
-
-## Gestión de salas
-
-El módulo de salas permite:
-
-- registrar nuevas salas.
-- consultar todas las salas.
-- buscar una sala por código.
-- modificar el nombre.
-- modificar la capacidad.
-- cambiar el estado entre disponible y fuera de servicio.
-
-El código de una sala funciona como identificador y es inmutable después
-de su registro.
-
-Los códigos se normalizan a mayúsculas y su unicidad no distingue entre
-mayúsculas y minúsculas.
-
-La capacidad debe ser un número entero mayor que cero.
-
-Cuando se intenta reducir la capacidad de una sala, la aplicación
-verifica las reservaciones activas presentes o futuras. La operación se
-rechaza si existe alguna reservación cuya cantidad de personas supere la
-nueva capacidad.
-
-Las reservaciones canceladas y las correspondientes a fechas pasadas no
-bloquean una reducción de capacidad.
-
-## Gestión de reservaciones
-
-El módulo de reservaciones permite:
-
-- crear nuevas reservaciones.
-- consultar el historial completo.
-- buscar reservaciones por carné de estudiante.
-- cancelar reservaciones.
-- modificar reservaciones activas.
-
-Antes de guardar o modificar una reservación se aplican las reglas de
-negocio definidas para estudiantes, salas, fechas, horarios, duración,
-capacidad y disponibilidad.
-
-Las reservaciones canceladas permanecen almacenadas en el historial y
-dejan de bloquear la disponibilidad de la sala.
-
-Una reservación cancelada no puede modificarse.
-
-Las modificaciones conservan el identificador original. La aplicación
-valida completamente los nuevos datos antes de actualizar SQLite; si
-alguna validación falla, la reservación almacenada permanece sin cambios.
-
-Los identificadores son generados automáticamente por SQLite y no se
-reutilizan.
-
-## Consulta de disponibilidad
-
-La aplicación permite consultar los horarios disponibles de una sala sin
-crear una reservación.
-
-La consulta considera:
-
-- código de sala.
-- fecha.
-- duración de una o dos horas.
-- horario de funcionamiento entre 08:00 y 20:00.
-- reservaciones activas existentes.
-- estado de la sala.
-
-Una reservación produce conflicto cuando se cumple:
-
-`inicio_nuevo < fin_existente`
-y
-`fin_nuevo > inicio_existente`
-
-Las reservaciones consecutivas están permitidas. Por ejemplo, una
-reservación que termina a las 10:00 no impide otra que inicia exactamente
-a las 10:00.
-
-Las reservaciones canceladas no bloquean disponibilidad.
-
-Las consultas de disponibilidad son operaciones de solo lectura y no
-crean ni modifican registros en SQLite.
-
-## Reservaciones recurrentes
-
-La aplicación permite crear series semanales de reservaciones.
-
-Una serie debe contener entre 2 y 8 ocurrencias.
-
-Antes de guardar una serie se calculan y validan todas las fechas. La
-aplicación genera un resumen que permite identificar las ocurrencias
-disponibles y aquellas que presentan conflictos.
-
-Si existe cualquier conflicto, la serie completa se rechaza y no se
-guardan ocurrencias parciales.
-
-Cuando todas las ocurrencias son válidas, la serie y sus reservaciones
-se almacenan dentro de una única transacción SQLite.
-
-Cada ocurrencia es una reservación independiente y posee su propio
-identificador.
-
-La aplicación permite cancelar:
-
-- una ocurrencia individual.
-- las ocurrencias posteriores a una ocurrencia seleccionada.
-- opcionalmente, la seleccionada y todas las posteriores.
-
-Las ocurrencias canceladas permanecen almacenadas en el historial.
-
-### Relación entre recurrencia y límite general de reservaciones
-
-RF-14 permite expresamente series de entre 2 y 8 ocurrencias. La
-especificación no define cómo interactúa esta funcionalidad con el límite
-general de tres reservaciones activas por estudiante.
-
-Para mantener operativo el rango definido por RF-14, la creación de una
-serie recurrente utiliza su propio límite de 2 a 8 ocurrencias y no aplica
-el límite RN-11 durante la creación de la serie.
-
-## Panel principal
-
-El panel principal consulta directamente la información almacenada en
-SQLite y no mantiene una copia independiente de las reservaciones.
-
-Cada registro del panel puede incluir:
-
-- identificador.
-- carné del estudiante.
-- nombre del estudiante.
-- código de sala.
-- nombre de sala.
-- fecha.
-- hora de inicio.
-- duración.
-- cantidad de personas.
-- estado.
-
-El panel permite aplicar opcionalmente filtros por fecha, sala y estado.
-
-Los filtros pueden combinarse entre sí.
-
-Los estados permitidos son:
-
-- activa
-- cancelada
-
-Después de crear, modificar o cancelar una reservación, una nueva consulta
-del panel refleja inmediatamente los datos almacenados en SQLite.
-
-Las consultas del panel son operaciones de solo lectura y no modifican la
-base de datos.
-
-## Reportes y exportación CSV
-
-La aplicación permite generar reportes de reservaciones utilizando un
-rango obligatorio de fechas.
-
-La fecha inicial y la fecha final son obligatorias.
-
-La fecha final debe ser igual o posterior a la fecha inicial.
-
-El rango es inclusivo, por lo que las reservaciones correspondientes a
-ambas fechas límite forman parte del reporte.
-
-Los reportes incluyen reservaciones activas y canceladas.
-
-Cada fila contiene:
-
-- identificador.
-- carné del estudiante.
-- nombre del estudiante.
-- código de sala.
-- nombre de sala.
-- fecha.
-- hora de inicio.
-- duración.
-- cantidad de personas.
-- estado.
-
-Los reportes pueden exportarse en formato CSV con codificación UTF-8.
-
-La codificación conserva correctamente caracteres como tildes y la letra
-ñ.
-
-La exportación utiliza un archivo temporal y solamente crea o reemplaza el
-archivo final después de completar correctamente la escritura.
-
-Si el usuario cancela la selección del destino, no se crea ningún archivo.
-
-La generación y exportación de reportes son operaciones de lectura y no
-modifican las reservaciones almacenadas.
-
-## Auditoría
-
-La aplicación mantiene un historial automático de acciones exitosas.
-
-La auditoría registra operaciones de creación, modificación y cancelación
-sobre las principales entidades del sistema.
-
-Cada evento contiene:
-
-- identificador del evento.
-- fecha y hora.
-- acción.
-- tipo de entidad.
-- identificador de la entidad.
-- detalle de la operación.
-
-La auditoría se implementa mediante triggers de SQLite. Esto permite que
-el evento se registre dentro de la misma transacción que modifica los
-datos.
-
-Si una operación falla o es rechazada por una validación, no se registra
-como acción exitosa.
-
-Las consultas y reportes no generan eventos de auditoría.
-
-Los datos iniciales cargados automáticamente al crear la base tampoco se
-registran como acciones del usuario.
-
-El historial de auditoría es de solo lectura.
-
-La aplicación no expone operaciones para modificar o eliminar eventos y
-SQLite contiene triggers que bloquean cualquier UPDATE o DELETE sobre la
-tabla de auditoría.
-
-## Interfaz gráfica
-
-La aplicación utiliza PySide6, basado en Qt, para su interfaz gráfica de
-escritorio.
-
-La ventana principal utiliza un menú lateral y un QStackedWidget para
-separar los principales módulos del sistema.
-
-La interfaz incluye:
-
-- panel de control;
-- gestión de estudiantes;
-- gestión de salas;
-- calendario y consulta de disponibilidad;
-- gestión de reservaciones;
-- reservaciones recurrentes;
-- reportes y exportación CSV;
-- historial de auditoría.
-
-Las reglas de negocio no se implementan dentro de la interfaz gráfica.
-
-Las vistas invocan los servicios de la aplicación y muestran al usuario
-los resultados o errores mediante componentes de Qt.
-
-Esta separación permite probar la lógica de negocio sin automatización de
-clics, de acuerdo con RNF-10.
-
-### Ejecución
-
-Instalar las dependencias:
-
-`pip install -r requirements.txt`
-
-Ejecutar la aplicación:
-
-`python main.py`
-
-### Arquitectura de interfaz
-
-La estructura principal es:
-
-Interfaz PySide6
-→ Servicios
-→ Validaciones y reglas de negocio
-→ Persistencia SQLite
-
-La interfaz nunca accede directamente a las tablas para aplicar reglas de
-negocio.
-
-## Transacciones, excepciones e integridad
-
-La aplicación utiliza transacciones SQLite para proteger las operaciones
-que requieren múltiples escrituras.
-
-Una transacción se confirma mediante COMMIT solamente cuando todas sus
-operaciones finalizan correctamente.
-
-Si ocurre cualquier excepción, la aplicación ejecuta ROLLBACK antes de
-cerrar la conexión.
-
-La creación de series recurrentes es atómica. Una serie, sus reservaciones
-y sus relaciones se almacenan como una sola operación lógica. Si cualquier
-inserción falla, ningún elemento de la serie permanece almacenado.
-
-Los eventos de auditoría generados por triggers forman parte de la misma
-transacción y también se revierten cuando la operación principal falla.
-
-Cada conexión SQLite activa:
-
-- claves foráneas mediante `PRAGMA foreign_keys = ON`;
-- un tiempo de espera ante bloqueos mediante `PRAGMA busy_timeout`.
-
-La integridad puede verificarse mediante:
+La integridad puede comprobarse mediante:
 
 - `PRAGMA integrity_check`.
 - `PRAGMA foreign_key_check`.
 
-La capa de interfaz captura errores de validación, reglas de negocio y
-errores principales de SQLite para mostrarlos mediante mensajes de Qt sin
-cerrar abruptamente la aplicación.
+## Ejecutar las pruebas
+
+Con el entorno virtual activado:
+
+```bash
+pytest -v
+```
+
+Ejecución resumida:
+
+```bash
+pytest -q
+```
+
+## Pruebas de integración
+
+```bash
+pytest -m integracion -v
+```
+
+## Pruebas de contrato
+
+```bash
+pytest -m contrato -v
+```
+
+## Requisitos no funcionales
+
+```bash
+pytest -m rnf -v
+```
+
+## Rendimiento
+
+El requisito RNF-09 utiliza una base temporal preparada con:
+
+- 1 000 estudiantes.
+- 5 000 reservaciones.
+
+Para ejecutar la prueba:
+
+```bash
+pytest pruebas/test_rendimiento.py -v -s
+```
+
+Para conservar la evidencia:
+
+```bash
+GENERAR_EVIDENCIA_RNF09=1 pytest pruebas/test_rendimiento.py -q -s
+```
+
+La evidencia queda en:
+
+`evidencias/rnf09_rendimiento.txt`
+
+La preparación de los datos no forma parte del tiempo medido.
+
+## Integridad de la base
+
+Puede comprobarse manualmente con:
+
+```bash
+python -c "from aplicacion.persistencia import obtener_estado_integridad. print(obtener_estado_integridad())"
+```
+
+Un estado correcto debe indicar:
+
+```text
+integridad: ok
+claves_foraneas: []
+correcta: True
+```
+
+## Codificación
+
+El proyecto utiliza UTF-8.
+
+SQLite y las exportaciones CSV deben conservar correctamente caracteres
+como:
+
+`María Peña Muñoz`
+
+`Cubículo individual`
+
+## Manejo de errores
+
+Las validaciones y reglas de negocio generan errores controlados.
+
+En la interfaz gráfica, los errores se presentan mediante diálogos de Qt.
+
+Una entrada inválida no debe cerrar la aplicación ni producir
+modificaciones parciales en la base de datos.
+
+## Archivos generados localmente
+
+La base SQLite de trabajo no forma parte del código fuente versionado.
+
+También se excluyen del repositorio elementos locales como:
+
+```text
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+datos/*.db
+.DS_Store
+```
+
+## Portabilidad
+
+El código productivo no utiliza rutas personales absolutas.
+
+Las rutas necesarias se construyen a partir de la ubicación del proyecto,
+por lo que el repositorio puede ubicarse en directorios diferentes sin
+modificar el código fuente.
+
+## Versión candidata
+
+La versión se identifica mediante tres elementos:
+
+1. archivo `VERSION`.
+2. commit de Git.
+3. etiqueta Git correspondiente a la versión candidata.
+
+Para consultar la versión:
+
+```bash
+cat VERSION
+```
+
+Resultado esperado para esta candidata:
+
+```text
+1.0.0-rc1
+```
+
+## Verificación antes de entregar
+
+Antes de identificar una nueva versión candidata se debe ejecutar:
+
+```bash
+pytest -v
+```
+
+Luego:
+
+```bash
+python -c "from aplicacion.persistencia import obtener_estado_integridad. print(obtener_estado_integridad())"
+```
+
+Y finalmente:
+
+```bash
+python main.py
+```
+
+La versión candidata solamente debe etiquetarse después de confirmar que
+la suite no presenta fallos.
+
+## Identificación mediante Git
+
+Crear el commit de la candidata:
+
+```bash
+git add README.md requirements.txt VERSION main.py pruebas/test_version_candidata.py
+git commit -m "Preparar version candidata reproducible"
+```
+
+Crear la etiqueta:
+
+```bash
+git tag -a v1.0.0-rc1 -m "Version candidata 1.0.0-rc1"
+```
+
+Publicar el commit:
+
+```bash
+git push
+```
+
+Publicar la etiqueta:
+
+```bash
+git push origin v1.0.0-rc1
+```
+
+## Estado
+
+`1.0.0-rc1` es una versión candidata.
+
+La verificación global definitiva de la Fase 2 se realiza después de esta
+preparación.
