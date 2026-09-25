@@ -350,3 +350,98 @@ def listar_reservaciones_activas_sala_fecha(
         _fila_a_reservacion(fila)
         for fila in filas
     ]
+
+def consultar_reservaciones_panel(
+    fecha=None,
+    codigo_sala=None,
+    estado=None,
+    ruta_base_datos=None,
+):
+    """
+    Consulta las reservaciones que deben mostrarse
+    en el panel principal.
+
+    Permite combinar opcionalmente filtros de fecha,
+    sala y estado.
+
+    La consulta incluye informacion descriptiva del
+    estudiante y de la sala.
+    """
+
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
+
+    consulta = """
+        SELECT
+            r.id,
+            r.carne_estudiante,
+            e.nombre AS nombre_estudiante,
+            r.codigo_sala,
+            s.nombre AS nombre_sala,
+            r.fecha,
+            r.hora_inicio,
+            r.duracion_horas,
+            r.cantidad_personas,
+            r.estado
+
+        FROM reservaciones r
+
+        INNER JOIN estudiantes e
+            ON e.carne = r.carne_estudiante
+
+        INNER JOIN salas s
+            ON s.codigo = r.codigo_sala
+
+        WHERE 1 = 1
+    """
+
+    parametros = []
+
+    if fecha is not None:
+        consulta += """
+            AND r.fecha = ?
+        """
+
+        parametros.append(
+            fecha
+        )
+
+    if codigo_sala is not None:
+        consulta += """
+            AND r.codigo_sala = ?
+        """
+
+        parametros.append(
+            codigo_sala
+        )
+
+    if estado is not None:
+        consulta += """
+            AND r.estado = ?
+        """
+
+        parametros.append(
+            estado
+        )
+
+    consulta += """
+        ORDER BY
+            r.fecha,
+            r.hora_inicio,
+            r.id
+    """
+
+    try:
+        filas = conexion.execute(
+            consulta,
+            parametros,
+        ).fetchall()
+
+    finally:
+        conexion.close()
+
+    return [
+        dict(fila)
+        for fila in filas
+    ]

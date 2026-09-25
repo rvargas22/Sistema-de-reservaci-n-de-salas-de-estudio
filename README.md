@@ -312,3 +312,36 @@ general de tres reservaciones activas por estudiante.
 Para mantener operativo el rango definido por RF-14, la creación de una
 serie recurrente utiliza su propio límite de 2 a 8 ocurrencias y no aplica
 el límite RN-11 durante la creación de la serie.
+
+## Panel principal
+
+El panel principal consulta directamente la información almacenada en
+SQLite y no mantiene una copia independiente de las reservaciones.
+
+Cada registro del panel puede incluir:
+
+- identificador.
+- carné del estudiante.
+- nombre del estudiante.
+- código de sala.
+- nombre de sala.
+- fecha.
+- hora de inicio.
+- duración.
+- cantidad de personas.
+- estado.
+
+El panel permite aplicar opcionalmente filtros por fecha, sala y estado.
+
+Los filtros pueden combinarse entre sí.
+
+Los estados permitidos son:
+
+- activa
+- cancelada
+
+Después de crear, modificar o cancelar una reservación, una nueva consulta
+del panel refleja inmediatamente los datos almacenados en SQLite.
+
+Las consultas del panel son operaciones de solo lectura y no modifican la
+base de datos.

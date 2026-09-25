@@ -17,8 +17,17 @@ from aplicacion.persistencia.repositorio_estudiantes import (
     obtener_estudiante_por_carne,
 )
 
+from aplicacion.persistencia.repositorio_recurrencia import (
+    cancelar_ocurrencias_posteriores,
+    guardar_serie_recurrente,
+    listar_ocurrencias_serie,
+    obtener_ocurrencia_serie,
+    obtener_serie_recurrente_por_id,
+)
+
 from aplicacion.persistencia.repositorio_reservaciones import (
     actualizar_reservacion,
+    consultar_reservaciones_panel,
     guardar_reservacion,
     listar_reservaciones,
     listar_reservaciones_activas_sala_fecha,
@@ -33,14 +42,6 @@ from aplicacion.persistencia.repositorio_salas import (
     listar_salas,
     obtener_maximo_personas_reservaciones_activas_desde,
     obtener_sala_por_codigo,
-)
-
-from aplicacion.persistencia.repositorio_recurrencia import (
-    cancelar_ocurrencias_posteriores,
-    guardar_serie_recurrente,
-    listar_ocurrencias_serie,
-    obtener_ocurrencia_serie,
-    obtener_serie_recurrente_por_id,
 )
 
 
@@ -62,10 +63,12 @@ __all__ = [
     "guardar_reservacion",
     "obtener_reservacion_por_id",
     "listar_reservaciones",
-    "listar_reservaciones_activas_sala_fecha",
     "listar_reservaciones_por_carne",
+    "listar_reservaciones_activas_sala_fecha",
     "actualizar_reservacion",
     "marcar_reservacion_cancelada",
+    "consultar_reservaciones_panel",
+
     "guardar_serie_recurrente",
     "obtener_serie_recurrente_por_id",
     "listar_ocurrencias_serie",
