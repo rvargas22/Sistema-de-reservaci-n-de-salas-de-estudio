@@ -116,3 +116,24 @@ Los estados utilizados son:
 
 El identificador de una reservación puede ser `None` antes de que el
 registro sea almacenado en SQLite.
+
+## Identificadores de reservaciones
+
+Los identificadores de las reservaciones son generados
+automáticamente por SQLite.
+
+La columna utilizada es:
+
+`INTEGER PRIMARY KEY AUTOINCREMENT`
+
+La aplicación no calcula ni asigna manualmente los identificadores.
+
+Después de insertar una reservación se utiliza `lastrowid` para obtener
+el identificador generado por SQLite.
+
+La secuencia se mantiene aunque la aplicación se cierre y se vuelva
+a ejecutar.
+
+Una reservación cancelada conserva permanentemente su identificador.
+Las nuevas reservaciones reciben identificadores diferentes y los
+identificadores anteriores no se reutilizan.
