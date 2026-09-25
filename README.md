@@ -419,3 +419,52 @@ El historial de auditoría es de solo lectura.
 La aplicación no expone operaciones para modificar o eliminar eventos y
 SQLite contiene triggers que bloquean cualquier UPDATE o DELETE sobre la
 tabla de auditoría.
+
+## Interfaz gráfica
+
+La aplicación utiliza PySide6, basado en Qt, para su interfaz gráfica de
+escritorio.
+
+La ventana principal utiliza un menú lateral y un QStackedWidget para
+separar los principales módulos del sistema.
+
+La interfaz incluye:
+
+- panel de control;
+- gestión de estudiantes;
+- gestión de salas;
+- calendario y consulta de disponibilidad;
+- gestión de reservaciones;
+- reservaciones recurrentes;
+- reportes y exportación CSV;
+- historial de auditoría.
+
+Las reglas de negocio no se implementan dentro de la interfaz gráfica.
+
+Las vistas invocan los servicios de la aplicación y muestran al usuario
+los resultados o errores mediante componentes de Qt.
+
+Esta separación permite probar la lógica de negocio sin automatización de
+clics, de acuerdo con RNF-10.
+
+### Ejecución
+
+Instalar las dependencias:
+
+`pip install -r requirements.txt`
+
+Ejecutar la aplicación:
+
+`python main.py`
+
+### Arquitectura de interfaz
+
+La estructura principal es:
+
+Interfaz PySide6
+→ Servicios
+→ Validaciones y reglas de negocio
+→ Persistencia SQLite
+
+La interfaz nunca accede directamente a las tablas para aplicar reglas de
+negocio.

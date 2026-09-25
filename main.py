@@ -1,20 +1,60 @@
 """
-Punto de entrada del Sistema de reservacion de salas de estudio.
+Punto de entrada de la aplicacion.
 """
 
-from aplicacion.persistencia.inicializador import inicializar_base_datos
+import sys
+
+from PySide6.QtWidgets import QApplication
+
+from aplicacion.interfaz import (
+    VentanaPrincipal,
+)
+
+from aplicacion.persistencia import (
+    inicializar_base_datos,
+)
+
+
+def crear_ventana_principal(
+    ruta_base_datos=None,
+):
+    """
+    Inicializa la base y crea la ventana principal.
+
+    Esta funcion facilita las pruebas de la interfaz
+    utilizando una base temporal.
+    """
+
+    inicializar_base_datos(
+        ruta_base_datos
+    )
+
+    return VentanaPrincipal(
+        ruta_base_datos
+    )
 
 
 def iniciar_aplicacion():
     """
-    Inicializa los componentes principales de la aplicacion.
+    Inicia la aplicacion grafica.
     """
 
-    inicializar_base_datos()
+    aplicacion = QApplication(
+        sys.argv
+    )
 
-    print("Sistema de reservacion de salas de estudio")
-    print("Base de datos inicializada correctamente.")
+    aplicacion.setApplicationName(
+        "Sistema de reservación de salas de estudio"
+    )
+
+    ventana = crear_ventana_principal()
+
+    ventana.show()
+
+    return aplicacion.exec()
 
 
 if __name__ == "__main__":
-    iniciar_aplicacion()
+    sys.exit(
+        iniciar_aplicacion()
+    )
