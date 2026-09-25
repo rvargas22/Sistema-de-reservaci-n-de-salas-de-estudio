@@ -62,10 +62,7 @@ def guardar_serie_recurrente(
 ):
     """
     Guarda una serie recurrente y todas sus
-    ocurrencias dentro de una unica transaccion.
-
-    Si falla cualquier INSERT, se revierte toda
-    la operacion.
+    ocurrencias dentro de una sola transaccion.
     """
 
     with transaccion(
@@ -170,10 +167,6 @@ def obtener_serie_recurrente_por_id(
     serie_id,
     ruta_base_datos=None,
 ):
-    """
-    Devuelve los datos generales de una serie.
-    """
-
     conexion = obtener_conexion(
         ruta_base_datos
     )
@@ -215,11 +208,6 @@ def listar_ocurrencias_serie(
     serie_id,
     ruta_base_datos=None,
 ):
-    """
-    Devuelve todas las ocurrencias pertenecientes
-    a una serie recurrente.
-    """
-
     conexion = obtener_conexion(
         ruta_base_datos
     )
@@ -257,24 +245,18 @@ def listar_ocurrencias_serie(
     finally:
         conexion.close()
 
-    resultado = []
+    return [
+        {
+            "numero_ocurrencia":
+                fila["numero_ocurrencia"],
 
-    for fila in filas:
-        resultado.append(
-            {
-                "numero_ocurrencia":
-                    fila[
-                        "numero_ocurrencia"
-                    ],
-
-                "reservacion":
-                    _fila_a_reservacion(
-                        fila
-                    ),
-            }
-        )
-
-    return resultado
+            "reservacion":
+                _fila_a_reservacion(
+                    fila
+                ),
+        }
+        for fila in filas
+    ]
 
 
 def obtener_ocurrencia_serie(
@@ -282,10 +264,6 @@ def obtener_ocurrencia_serie(
     numero_ocurrencia,
     ruta_base_datos=None,
 ):
-    """
-    Obtiene una ocurrencia concreta.
-    """
-
     conexion = obtener_conexion(
         ruta_base_datos
     )
@@ -327,9 +305,7 @@ def obtener_ocurrencia_serie(
 
     return {
         "numero_ocurrencia":
-            fila[
-                "numero_ocurrencia"
-            ],
+            fila["numero_ocurrencia"],
 
         "reservacion":
             _fila_a_reservacion(
@@ -344,14 +320,6 @@ def cancelar_ocurrencias_posteriores(
     incluir_seleccionada=False,
     ruta_base_datos=None,
 ):
-    """
-    Cancela las ocurrencias posteriores a una
-    ocurrencia de referencia.
-
-    La modificacion completa se realiza dentro
-    de una transaccion.
-    """
-
     operador = (
         ">="
         if incluir_seleccionada

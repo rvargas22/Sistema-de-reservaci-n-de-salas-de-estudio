@@ -2,6 +2,8 @@
 Vista del panel principal.
 """
 
+from datetime import date
+
 from PySide6.QtCore import QDate
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -29,7 +31,7 @@ from aplicacion.servicios import (
 
 class VistaPanel(QWidget):
     """
-    Panel principal de reservaciones.
+    Panel principal del sistema.
     """
 
     def __init__(
@@ -58,6 +60,18 @@ class VistaPanel(QWidget):
 
         titulo.setObjectName(
             "tituloVista"
+        )
+
+        self.etiqueta_hoy = QLabel(
+            "Reservaciones de hoy: 0"
+        )
+
+        self.etiqueta_proximas = QLabel(
+            "Próximas reservaciones: 0"
+        )
+
+        self.etiqueta_ocupacion = QLabel(
+            "Ocupación por sala: sin reservaciones."
         )
 
         self.check_fecha = QCheckBox(
@@ -185,6 +199,18 @@ class VistaPanel(QWidget):
             titulo
         )
 
+        layout.addWidget(
+            self.etiqueta_hoy
+        )
+
+        layout.addWidget(
+            self.etiqueta_proximas
+        )
+
+        layout.addWidget(
+            self.etiqueta_ocupacion
+        )
+
         layout.addLayout(
             filtros
         )
@@ -200,7 +226,7 @@ class VistaPanel(QWidget):
     def refrescar_opciones_salas(
         self,
     ):
-        codigo_actual = (
+        actual = (
             self.combo_sala.currentData()
         )
 
@@ -224,15 +250,105 @@ class VistaPanel(QWidget):
                 sala.codigo,
             )
 
-        if codigo_actual is not None:
+        if actual is not None:
             indice = self.combo_sala.findData(
-                codigo_actual
+                actual
             )
 
             if indice >= 0:
                 self.combo_sala.setCurrentIndex(
                     indice
                 )
+
+    def refrescar_resumen(
+        self,
+    ):
+        """
+        Actualiza los tres componentes obligatorios
+        del panel.
+        """
+
+        filas = consultar_panel(
+            ruta_base_datos=(
+                self.ruta_base_datos
+            )
+        )
+
+        hoy = date.today().isoformat()
+
+        reservas_hoy = [
+            fila
+            for fila in filas
+            if (
+                fila["fecha"]
+                == hoy
+                and fila["estado"]
+                == "activa"
+            )
+        ]
+
+        proximas = [
+            fila
+            for fila in filas
+            if (
+                fila["fecha"]
+                > hoy
+                and fila["estado"]
+                == "activa"
+            )
+        ]
+
+        self.etiqueta_hoy.setText(
+            (
+                "Reservaciones de hoy: "
+                f"{len(reservas_hoy)}"
+            )
+        )
+
+        self.etiqueta_proximas.setText(
+            (
+                "Próximas reservaciones: "
+                f"{len(proximas)}"
+            )
+        )
+
+        salas = consultar_salas(
+            self.ruta_base_datos
+        )
+
+        conteo = {
+            sala.codigo: 0
+            for sala in salas
+        }
+
+        for fila in reservas_hoy:
+            codigo = fila[
+                "codigo_sala"
+            ]
+
+            conteo[codigo] = (
+                conteo.get(
+                    codigo,
+                    0,
+                )
+                + 1
+            )
+
+        detalle = ", ".join(
+            (
+                f"{codigo}: "
+                f"{cantidad}"
+            )
+            for codigo, cantidad
+            in conteo.items()
+        )
+
+        self.etiqueta_ocupacion.setText(
+            (
+                "Ocupación por sala "
+                f"(reservaciones de hoy): {detalle}"
+            )
+        )
 
     def cargar_datos(
         self,
@@ -313,6 +429,9 @@ class VistaPanel(QWidget):
     ):
         try:
             self.refrescar_opciones_salas()
+
+            self.refrescar_resumen()
+
             self.cargar_datos()
 
         except Exception as error:

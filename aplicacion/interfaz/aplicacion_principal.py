@@ -10,6 +10,8 @@ from PySide6.QtWidgets import (
     QLabel,
     QListWidget,
     QMainWindow,
+    QMessageBox,
+    QPushButton,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
@@ -206,6 +208,18 @@ class VentanaPrincipal(QMainWindow):
             0
         )
 
+        self.boton_salir = QPushButton(
+            "Salir"
+        )
+
+        self.boton_salir.setObjectName(
+            "botonSalir"
+        )
+
+        self.boton_salir.clicked.connect(
+            self.solicitar_salida
+        )
+
         layout_lateral.addWidget(
             titulo
         )
@@ -223,6 +237,10 @@ class VentanaPrincipal(QMainWindow):
         )
 
         layout_lateral.addStretch()
+
+        layout_lateral.addWidget(
+            self.boton_salir
+        )
 
         contenido = QWidget()
 
@@ -333,8 +351,60 @@ class VentanaPrincipal(QMainWindow):
             ):
                 vista.refrescar()
 
+    def solicitar_salida(
+        self,
+    ):
+        """
+        Inicia el cierre controlado de la ventana.
+        """
+
+        self.close()
+
+    def closeEvent(
+        self,
+        evento,
+    ):
+        """
+        Controla el cierre de la aplicacion.
+
+        Cuando la ventana se encuentra visible,
+        solicita confirmacion antes de salir.
+
+        Durante pruebas estructurales la ventana no
+        se muestra, por lo que se permite cerrarla
+        sin abrir un dialogo modal.
+        """
+
+        if not self.isVisible():
+            evento.accept()
+            return
+
+        respuesta = QMessageBox.question(
+            self,
+            "Salir",
+            (
+                "¿Desea salir del sistema?\n\n"
+                "Los cambios ya confirmados "
+                "se encuentran guardados."
+            ),
+            (
+                QMessageBox.StandardButton.Yes
+                | QMessageBox.StandardButton.No
+            ),
+            QMessageBox.StandardButton.No,
+        )
+
+        if (
+            respuesta
+            == QMessageBox.StandardButton.Yes
+        ):
+            evento.accept()
+
+        else:
+            evento.ignore()
+
     def _aplicar_estilo(
-    self,
+        self,
     ):
         self.setStyleSheet(
             """
@@ -436,6 +506,21 @@ class VentanaPrincipal(QMainWindow):
                 background-color: #cbd5e1;
                 color: #6b7280;
                 border: 1px solid #cbd5e1;
+            }
+
+            #botonSalir {
+                background-color: #b91c1c;
+                color: #ffffff;
+                border: 1px solid #991b1b;
+                margin-bottom: 8px;
+            }
+
+            #botonSalir:hover {
+                background-color: #991b1b;
+            }
+
+            #botonSalir:pressed {
+                background-color: #7f1d1d;
             }
 
             QLineEdit,

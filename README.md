@@ -15,7 +15,7 @@ La versión actual se encuentra identificada en el archivo:
 
 Versión candidata actual:
 
-`1.0.0-rc1`
+`1.0.0-rc2`
 
 Esta versión corresponde a una versión candidata de la Fase 2 y debe
 superar la verificación final antes de considerarse versión definitiva.
@@ -443,7 +443,7 @@ cat VERSION
 Resultado esperado para esta candidata:
 
 ```text
-1.0.0-rc1
+1.0.0-rc2
 ```
 
 ## Verificación antes de entregar
@@ -481,7 +481,7 @@ git commit -m "Preparar version candidata reproducible"
 Crear la etiqueta:
 
 ```bash
-git tag -a v1.0.0-rc1 -m "Version candidata 1.0.0-rc1"
+git tag -a v1.0.0-rc2 -m "Version candidata 1.0.0-rc2"
 ```
 
 Publicar el commit:
@@ -493,12 +493,12 @@ git push
 Publicar la etiqueta:
 
 ```bash
-git push origin v1.0.0-rc1
+git push origin v1.0.0-rc2
 ```
 
 ## Estado
 
-`1.0.0-rc1` es una versión candidata.
+`1.0.0-rc2` es una versión candidata.
 
 La verificación global definitiva de la Fase 2 se realiza después de esta
 preparación.

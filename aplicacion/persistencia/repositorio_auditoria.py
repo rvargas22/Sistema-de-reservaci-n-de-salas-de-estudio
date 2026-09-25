@@ -18,8 +18,7 @@ def _fila_a_evento(
     fila,
 ):
     """
-    Convierte una fila de SQLite en un
-    EventoAuditoria.
+    Convierte una fila SQLite en EventoAuditoria.
     """
 
     if fila is None:
@@ -30,7 +29,9 @@ def _fila_a_evento(
         fecha_hora=fila["fecha_hora"],
         accion=fila["accion"],
         entidad=fila["entidad"],
-        identificador=fila["identificador"],
+        identificador=str(
+            fila["identificador"]
+        ),
         detalle=fila["detalle"],
     )
 
@@ -39,8 +40,10 @@ def listar_eventos_auditoria(
     ruta_base_datos=None,
 ):
     """
-    Devuelve el historial completo de auditoria
-    en orden cronologico.
+    Devuelve todos los eventos del historial
+    de auditoria.
+
+    La consulta es exclusivamente de lectura.
     """
 
     conexion = obtener_conexion(
@@ -80,7 +83,7 @@ def obtener_evento_auditoria(
     ruta_base_datos=None,
 ):
     """
-    Obtiene un evento concreto por su identificador.
+    Obtiene un evento concreto del historial.
     """
 
     conexion = obtener_conexion(

@@ -1,8 +1,6 @@
 """
-Logica de aplicacion relacionada con reservaciones.
+Servicios de gestion de reservaciones.
 """
-
-import re
 
 from dataclasses import replace
 
@@ -12,26 +10,31 @@ from aplicacion.persistencia import (
     listar_reservaciones,
     listar_reservaciones_por_carne,
     marcar_reservacion_cancelada,
-    obtener_estudiante_por_carne,
     obtener_reservacion_por_id,
+    obtener_estudiante_por_carne,
     obtener_sala_por_codigo,
 )
 
-from aplicacion.validaciones import (
+from aplicacion.persistencia.identificadores import (
+    formatear_identificador_reservacion,
+    numero_identificador_reservacion,
+)
+
+from aplicacion.validaciones.excepciones import (
     ErrorReglaNegocio,
     ErrorValidacion,
-    validar_carne,
-    validar_reservacion,
+)
+
+from aplicacion.validaciones.validador_estudiantes import (
+    normalizar_carne,
 )
 
 from aplicacion.validaciones.validador_salas import (
     normalizar_codigo_sala,
 )
 
-
-PATRON_ID_RESERVACION = re.compile(
-    r"^R(\d{4,})$",
-    re.IGNORECASE,
+from aplicacion.validaciones.validador_reservaciones import (
+    validar_reservacion,
 )
 
 
@@ -39,76 +42,25 @@ def _validar_identificador(
     identificador,
 ):
     """
-    Convierte el identificador publico R0001
-    al ID entero utilizado internamente.
-
-    Se mantienen enteros por compatibilidad con
-    las capas internas.
+    Convierte un ID numerico o R0001 al numero
+    interno utilizado por SQLite.
     """
 
-    if isinstance(
-        identificador,
-        bool,
-    ):
-        raise ErrorValidacion(
-            "El identificador de la reservación "
-            "no es válido."
-        )
-
-    if isinstance(
-        identificador,
-        int,
-    ):
-        valor = identificador
-
-    elif isinstance(
-        identificador,
-        str,
-    ):
-        texto = (
+    try:
+        return numero_identificador_reservacion(
             identificador
-            .strip()
-            .upper()
         )
 
-        coincidencia = (
-            PATRON_ID_RESERVACION
-            .fullmatch(
-                texto
-            )
-        )
-
-        if coincidencia:
-            valor = int(
-                coincidencia.group(
-                    1
-                )
-            )
-
-        elif texto.isdigit():
-            valor = int(
-                texto
-            )
-
-        else:
-            raise ErrorValidacion(
-                "El identificador debe tener "
-                "un formato como R0001."
-            )
-
-    else:
+    except (
+        TypeError,
+        ValueError,
+    ) as error:
         raise ErrorValidacion(
-            "El identificador de la reservación "
-            "no es válido."
-        )
-
-    if valor <= 0:
-        raise ErrorValidacion(
-            "El identificador de la reservación "
-            "debe ser mayor que cero."
-        )
-
-    return valor
+            (
+                "El identificador de la reservación "
+                "debe utilizar el formato R0001."
+            )
+        ) from error
 
 
 def crear_reservacion(
@@ -121,28 +73,26 @@ def crear_reservacion(
     ruta_base_datos=None,
     ahora=None,
 ):
-    carne_estudiante = validar_carne(
+    carne = normalizar_carne(
         carne_estudiante
     )
 
-    codigo_sala = normalizar_codigo_sala(
+    codigo = normalizar_codigo_sala(
         codigo_sala
     )
 
     estudiante = obtener_estudiante_por_carne(
-        carne_estudiante,
+        carne,
         ruta_base_datos,
     )
 
     sala = obtener_sala_por_codigo(
-        codigo_sala,
+        codigo,
         ruta_base_datos,
     )
 
-    reservaciones_existentes = (
-        listar_reservaciones(
-            ruta_base_datos
-        )
+    existentes = listar_reservaciones(
+        ruta_base_datos
     )
 
     reservacion = validar_reservacion(
@@ -152,9 +102,7 @@ def crear_reservacion(
         hora_inicio=hora_inicio,
         duracion_horas=duracion_horas,
         cantidad_personas=cantidad_personas,
-        reservaciones_existentes=(
-            reservaciones_existentes
-        ),
+        reservaciones_existentes=existentes,
         ahora=ahora,
     )
 
@@ -176,29 +124,25 @@ def buscar_reservaciones_estudiante(
     carne,
     ruta_base_datos=None,
 ):
-    """
-    Busca las reservaciones de un estudiante.
-
-    Distingue entre estudiante inexistente y
-    estudiante existente sin reservaciones.
-    """
-
-    carne = validar_carne(
+    carne_normalizado = normalizar_carne(
         carne
     )
 
     estudiante = obtener_estudiante_por_carne(
-        carne,
+        carne_normalizado,
         ruta_base_datos,
     )
 
     if estudiante is None:
         raise ErrorReglaNegocio(
-            "El estudiante no existe."
+            (
+                "no existe un estudiante "
+                "registrado con ese carné."
+            )
         )
 
     return listar_reservaciones_por_carne(
-        estudiante.carne,
+        carne_normalizado,
         ruta_base_datos,
     )
 
@@ -207,48 +151,49 @@ def cancelar_reservacion(
     identificador,
     ruta_base_datos=None,
 ):
-    identificador = (
-        _validar_identificador(
-            identificador
+    numero = _validar_identificador(
+        identificador
+    )
+
+    actual = obtener_reservacion_por_id(
+        numero,
+        ruta_base_datos,
+    )
+
+    identificador_visible = (
+        formatear_identificador_reservacion(
+            numero
         )
     )
 
-    reservacion = (
-        obtener_reservacion_por_id(
-            identificador,
-            ruta_base_datos,
+    if actual is None:
+        raise ErrorReglaNegocio(
+            (
+                "no existe una reservación "
+                f"con ID {identificador_visible}."
+            )
         )
+
+    if actual.estado == "cancelada":
+        raise ErrorReglaNegocio(
+            (
+                "La reservación ya se encuentra "
+                "cancelada."
+            )
+        )
+
+    cambiado = marcar_reservacion_cancelada(
+        numero,
+        ruta_base_datos,
     )
 
-    if reservacion is None:
+    if not cambiado:
         raise ErrorReglaNegocio(
-            "La reservación no existe."
-        )
-
-    if (
-        reservacion.estado
-        == "cancelada"
-    ):
-        raise ErrorReglaNegocio(
-            "La reservación ya se encuentra "
-            "cancelada."
-        )
-
-    actualizada = (
-        marcar_reservacion_cancelada(
-            identificador,
-            ruta_base_datos,
-        )
-    )
-
-    if not actualizada:
-        raise ErrorReglaNegocio(
-            "No fue posible cancelar "
-            "la reservación."
+            "No fue posible cancelar la reservación."
         )
 
     return obtener_reservacion_por_id(
-        identificador,
+        numero,
         ruta_base_datos,
     )
 
@@ -264,115 +209,116 @@ def modificar_reservacion(
     ruta_base_datos=None,
     ahora=None,
 ):
-    identificador = (
-        _validar_identificador(
-            identificador
-        )
+    numero = _validar_identificador(
+        identificador
     )
 
     actual = obtener_reservacion_por_id(
-        identificador,
+        numero,
         ruta_base_datos,
+    )
+
+    identificador_visible = (
+        formatear_identificador_reservacion(
+            numero
+        )
     )
 
     if actual is None:
         raise ErrorReglaNegocio(
-            "La reservación no existe."
+            (
+                "no existe una reservación "
+                f"con ID {identificador_visible}."
+            )
         )
 
-    if actual.estado == "cancelada":
+    if actual.estado != "activa":
         raise ErrorReglaNegocio(
-            "Una reservación cancelada "
-            "no puede modificarse."
+            (
+                "Una reservación cancelada "
+                "no puede modificarse."
+            )
         )
 
-    if carne_estudiante is None:
-        carne_estudiante = (
-            actual.carne_estudiante
-        )
-    else:
-        carne_estudiante = validar_carne(
+    nuevo_carne = (
+        actual.carne_estudiante
+        if carne_estudiante is None
+        else normalizar_carne(
             carne_estudiante
         )
+    )
 
-    if codigo_sala is None:
-        codigo_sala = (
-            actual.codigo_sala
-        )
-    else:
-        codigo_sala = normalizar_codigo_sala(
+    nuevo_codigo = (
+        actual.codigo_sala
+        if codigo_sala is None
+        else normalizar_codigo_sala(
             codigo_sala
         )
-
-    if fecha is None:
-        fecha = actual.fecha
-
-    if hora_inicio is None:
-        hora_inicio = (
-            actual.hora_inicio
-        )
-
-    if duracion_horas is None:
-        duracion_horas = (
-            actual.duracion_horas
-        )
-
-    if cantidad_personas is None:
-        cantidad_personas = (
-            actual.cantidad_personas
-        )
+    )
 
     estudiante = obtener_estudiante_por_carne(
-        carne_estudiante,
+        nuevo_carne,
         ruta_base_datos,
     )
 
     sala = obtener_sala_por_codigo(
-        codigo_sala,
+        nuevo_codigo,
         ruta_base_datos,
     )
 
-    reservaciones_existentes = [
+    existentes = [
         reservacion
         for reservacion
         in listar_reservaciones(
             ruta_base_datos
         )
-        if reservacion.id
-        != identificador
+        if reservacion.id != actual.id
     ]
 
-    validada = validar_reservacion(
+    candidata = validar_reservacion(
         estudiante=estudiante,
         sala=sala,
-        fecha=fecha,
-        hora_inicio=hora_inicio,
-        duracion_horas=duracion_horas,
-        cantidad_personas=cantidad_personas,
-        reservaciones_existentes=(
-            reservaciones_existentes
+        fecha=(
+            actual.fecha
+            if fecha is None
+            else fecha
         ),
+        hora_inicio=(
+            actual.hora_inicio
+            if hora_inicio is None
+            else hora_inicio
+        ),
+        duracion_horas=(
+            actual.duracion_horas
+            if duracion_horas is None
+            else duracion_horas
+        ),
+        cantidad_personas=(
+            actual.cantidad_personas
+            if cantidad_personas is None
+            else cantidad_personas
+        ),
+        reservaciones_existentes=existentes,
         ahora=ahora,
     )
 
     modificada = replace(
-        validada,
+        candidata,
         id=actual.id,
         estado=actual.estado,
     )
 
-    actualizada = actualizar_reservacion(
+    resultado = actualizar_reservacion(
         modificada,
         ruta_base_datos,
     )
 
-    if not actualizada:
+    if resultado is None:
         raise ErrorReglaNegocio(
-            "No fue posible modificar "
-            "la reservación."
+            (
+                "No fue posible modificar "
+                "la reservación."
+            )
         )
 
-    return obtener_reservacion_por_id(
-        identificador,
-        ruta_base_datos,
-    )
+    return resultado

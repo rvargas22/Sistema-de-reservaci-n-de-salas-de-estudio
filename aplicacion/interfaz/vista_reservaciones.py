@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QMessageBox,
     QPushButton,
     QSpinBox,
@@ -33,6 +34,7 @@ from aplicacion.interfaz.utilidades import (
 
 from aplicacion.servicios import (
     analizar_serie_recurrente,
+    buscar_reservaciones_estudiante,
     cancelar_ocurrencia_recurrente,
     cancelar_ocurrencias_futuras,
     cancelar_reservacion,
@@ -45,10 +47,15 @@ from aplicacion.servicios import (
     modificar_reservacion,
 )
 
+from aplicacion.validaciones import (
+    ErrorValidacion,
+)
+
 
 class VistaReservaciones(QWidget):
     """
-    Gestion de reservaciones.
+    Gestion de reservaciones individuales
+    y recurrentes.
     """
 
     datos_cambiados = Signal()
@@ -113,6 +120,7 @@ class VistaReservaciones(QWidget):
         pagina = QWidget()
 
         self.combo_estudiante = QComboBox()
+
         self.combo_sala = QComboBox()
 
         self.fecha_reserva = QDateEdit(
@@ -255,6 +263,56 @@ class VistaReservaciones(QWidget):
             boton_actualizar
         )
 
+        self.campo_busqueda_carne = QLineEdit()
+
+        self.campo_busqueda_carne.setPlaceholderText(
+            "Buscar por carné del estudiante"
+        )
+
+        boton_buscar_estudiante = QPushButton(
+            "Buscar por estudiante"
+        )
+
+        boton_mostrar_todas = QPushButton(
+            "Mostrar todas"
+        )
+
+        boton_buscar_estudiante.clicked.connect(
+            self.buscar_por_estudiante
+        )
+
+        boton_mostrar_todas.clicked.connect(
+            self.mostrar_todas_reservaciones
+        )
+
+        self.campo_busqueda_carne.returnPressed.connect(
+            self.buscar_por_estudiante
+        )
+
+        busqueda = QHBoxLayout()
+
+        busqueda.addWidget(
+            QLabel(
+                "Buscar estudiante:"
+            )
+        )
+
+        busqueda.addWidget(
+            self.campo_busqueda_carne
+        )
+
+        busqueda.addWidget(
+            boton_buscar_estudiante
+        )
+
+        busqueda.addWidget(
+            boton_mostrar_todas
+        )
+
+        self.etiqueta_resultados = QLabel(
+            "Historial de reservaciones"
+        )
+
         self.tabla_reservaciones = QTableWidget()
 
         configurar_tabla(
@@ -264,7 +322,8 @@ class VistaReservaciones(QWidget):
                 "Carné",
                 "Sala",
                 "Fecha",
-                "Hora",
+                "Hora inicio",
+                "Hora fin",
                 "Duración",
                 "Personas",
                 "Estado",
@@ -285,6 +344,14 @@ class VistaReservaciones(QWidget):
 
         layout.addLayout(
             botones
+        )
+
+        layout.addLayout(
+            busqueda
+        )
+
+        layout.addWidget(
+            self.etiqueta_resultados
         )
 
         layout.addWidget(
@@ -320,7 +387,9 @@ class VistaReservaciones(QWidget):
             "yyyy-MM-dd"
         )
 
-        self.combo_hora_recurrente = QComboBox()
+        self.combo_hora_recurrente = (
+            QComboBox()
+        )
 
         for hora in range(
             8,
@@ -486,7 +555,9 @@ class VistaReservaciones(QWidget):
         gestion = QHBoxLayout()
 
         gestion.addWidget(
-            QLabel("Serie ID:")
+            QLabel(
+                "Serie ID:"
+            )
         )
 
         gestion.addWidget(
@@ -494,7 +565,9 @@ class VistaReservaciones(QWidget):
         )
 
         gestion.addWidget(
-            QLabel("Ocurrencia:")
+            QLabel(
+                "Ocurrencia:"
+            )
         )
 
         gestion.addWidget(
@@ -525,7 +598,8 @@ class VistaReservaciones(QWidget):
                 "#",
                 "ID reservación",
                 "Fecha",
-                "Hora",
+                "Hora inicio",
+                "Hora fin",
                 "Estado",
             ],
         )
@@ -637,6 +711,31 @@ class VistaReservaciones(QWidget):
             self.combo_sala_recurrente
         )
 
+    def _cargar_reservaciones_tabla(
+        self,
+        reservaciones,
+    ):
+        """
+        Carga el historial utilizando el
+        identificador publico R0001.
+        """
+
+        cargar_tabla(
+            self.tabla_reservaciones,
+            reservaciones,
+            [
+                "identificador",
+                "carne_estudiante",
+                "codigo_sala",
+                "fecha",
+                "hora_inicio",
+                "hora_fin",
+                "duracion_horas",
+                "cantidad_personas",
+                "estado",
+            ],
+        )
+
     def refrescar_historial(
         self,
     ):
@@ -646,19 +745,15 @@ class VistaReservaciones(QWidget):
             )
         )
 
-        cargar_tabla(
-            self.tabla_reservaciones,
-            reservaciones,
-            [
-                "id",
-                "carne_estudiante",
-                "codigo_sala",
-                "fecha",
-                "hora_inicio",
-                "duracion_horas",
-                "cantidad_personas",
-                "estado",
-            ],
+        self._cargar_reservaciones_tabla(
+            reservaciones
+        )
+
+        self.etiqueta_resultados.setText(
+            (
+                "Historial de reservaciones: "
+                f"{len(reservaciones)}"
+            )
         )
 
     def refrescar(
@@ -666,6 +761,7 @@ class VistaReservaciones(QWidget):
     ):
         try:
             self.refrescar_opciones()
+
             self.refrescar_historial()
 
         except Exception as error:
@@ -734,8 +830,9 @@ class VistaReservaciones(QWidget):
                 self,
                 (
                     "Reservación creada "
-                    f"correctamente. ID: "
-                    f"{reservacion.id}"
+                    "correctamente.\n\n"
+                    "ID: "
+                    f"{reservacion.identificador}"
                 ),
             )
 
@@ -749,6 +846,71 @@ class VistaReservaciones(QWidget):
                 error,
             )
 
+    def buscar_por_estudiante(
+        self,
+    ):
+        carne = (
+            self.campo_busqueda_carne
+            .text()
+            .strip()
+        )
+
+        if not carne:
+            mostrar_error(
+                self,
+                ErrorValidacion(
+                    (
+                        "Ingrese el carné del "
+                        "estudiante que desea buscar."
+                    )
+                ),
+            )
+
+            return
+
+        try:
+            reservaciones = (
+                buscar_reservaciones_estudiante(
+                    carne,
+                    self.ruta_base_datos,
+                )
+            )
+
+            self._cargar_reservaciones_tabla(
+                reservaciones
+            )
+
+            if reservaciones:
+                self.etiqueta_resultados.setText(
+                    (
+                        "Reservaciones encontradas "
+                        f"para {carne.upper()}: "
+                        f"{len(reservaciones)}"
+                    )
+                )
+
+            else:
+                self.etiqueta_resultados.setText(
+                    (
+                        "El estudiante "
+                        f"{carne.upper()} no posee "
+                        "reservaciones."
+                    )
+                )
+
+        except Exception as error:
+            mostrar_error(
+                self,
+                error,
+            )
+
+    def mostrar_todas_reservaciones(
+        self,
+    ):
+        self.campo_busqueda_carne.clear()
+
+        self.refrescar_historial()
+
     def cargar_reservacion_seleccionada(
         self,
         fila,
@@ -757,11 +919,18 @@ class VistaReservaciones(QWidget):
         del columna
 
         try:
-            self.reservacion_id_seleccionada = int(
+            item_id = (
                 self.tabla_reservaciones.item(
                     fila,
                     0,
-                ).text()
+                )
+            )
+
+            if item_id is None:
+                return
+
+            self.reservacion_id_seleccionada = (
+                item_id.text()
             )
 
             carne = (
@@ -795,14 +964,14 @@ class VistaReservaciones(QWidget):
             duracion = int(
                 self.tabla_reservaciones.item(
                     fila,
-                    5,
+                    6,
                 ).text()
             )
 
             personas = int(
                 self.tabla_reservaciones.item(
                     fila,
-                    6,
+                    7,
                 ).text()
             )
 
@@ -849,10 +1018,11 @@ class VistaReservaciones(QWidget):
         if self.reservacion_id_seleccionada is None:
             mostrar_error(
                 self,
-                ValueError(
+                ErrorValidacion(
                     "Seleccione una reservación."
                 ),
             )
+
             return
 
         try:
@@ -889,8 +1059,9 @@ class VistaReservaciones(QWidget):
             mostrar_exito(
                 self,
                 (
-                    "Reservación modificada. "
-                    f"ID: {reservacion.id}"
+                    "Reservación modificada.\n\n"
+                    "ID: "
+                    f"{reservacion.identificador}"
                 ),
             )
 
@@ -910,10 +1081,11 @@ class VistaReservaciones(QWidget):
         if self.reservacion_id_seleccionada is None:
             mostrar_error(
                 self,
-                ValueError(
+                ErrorValidacion(
                     "Seleccione una reservación."
                 ),
             )
+
             return
 
         respuesta = QMessageBox.question(
@@ -923,6 +1095,11 @@ class VistaReservaciones(QWidget):
                 "¿Desea cancelar la reservación "
                 f"{self.reservacion_id_seleccionada}?"
             ),
+            (
+                QMessageBox.StandardButton.Yes
+                | QMessageBox.StandardButton.No
+            ),
+            QMessageBox.StandardButton.No,
         )
 
         if (
@@ -932,15 +1109,21 @@ class VistaReservaciones(QWidget):
             return
 
         try:
-            cancelar_reservacion(
+            reservacion = cancelar_reservacion(
                 self.reservacion_id_seleccionada,
                 self.ruta_base_datos,
             )
 
             mostrar_exito(
                 self,
-                "Reservación cancelada.",
+                (
+                    "Reservación cancelada.\n\n"
+                    "ID: "
+                    f"{reservacion.identificador}"
+                ),
             )
+
+            self.reservacion_id_seleccionada = None
 
             self.refrescar()
 
@@ -1126,14 +1309,17 @@ class VistaReservaciones(QWidget):
                                 "numero_ocurrencia"
                             ],
 
-                        "id":
-                            reservacion.id,
+                        "identificador":
+                            reservacion.identificador,
 
                         "fecha":
                             reservacion.fecha,
 
-                        "hora":
+                        "hora_inicio":
                             reservacion.hora_inicio,
+
+                        "hora_fin":
+                            reservacion.hora_fin,
 
                         "estado":
                             reservacion.estado,
@@ -1145,9 +1331,10 @@ class VistaReservaciones(QWidget):
                 filas,
                 [
                     "numero",
-                    "id",
+                    "identificador",
                     "fecha",
-                    "hora",
+                    "hora_inicio",
+                    "hora_fin",
                     "estado",
                 ],
             )
@@ -1175,6 +1362,7 @@ class VistaReservaciones(QWidget):
             )
 
             self.consultar_serie()
+
             self.refrescar()
 
             self.datos_cambiados.emit()
@@ -1203,6 +1391,7 @@ class VistaReservaciones(QWidget):
             )
 
             self.consultar_serie()
+
             self.refrescar()
 
             self.datos_cambiados.emit()
@@ -1231,6 +1420,7 @@ class VistaReservaciones(QWidget):
             )
 
             self.consultar_serie()
+
             self.refrescar()
 
             self.datos_cambiados.emit()

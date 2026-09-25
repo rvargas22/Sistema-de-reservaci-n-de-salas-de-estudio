@@ -138,8 +138,16 @@ def test_estado_integridad_correcto(
     )
 
     assert estado["integridad"] == "ok"
-    assert estado["claves_foraneas"] == []
-    assert estado["correcta"] is True
+
+    assert (
+        estado["claves_foraneas"]
+        == []
+    )
+
+    assert (
+        estado["correcta"]
+        is True
+    )
 
     assert (
         verificar_integridad_base_datos(
@@ -232,7 +240,6 @@ def test_transaccion_fallida_revierte_todos_los_cambios(
                 ),
             )
 
-            # A001234567 ya existe.
             conexion.execute(
                 """
                 INSERT INTO estudiantes (

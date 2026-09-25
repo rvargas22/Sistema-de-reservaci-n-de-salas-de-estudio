@@ -1,29 +1,49 @@
 """
-Operaciones de persistencia relacionadas con reservaciones.
+Operaciones de persistencia para reservaciones.
 """
 
-import sqlite3
 from dataclasses import replace
 
-from aplicacion.modelos import Reservacion
-from aplicacion.persistencia.base_datos import obtener_conexion
+from aplicacion.modelos import (
+    Reservacion,
+)
+
+from aplicacion.persistencia.base_datos import (
+    obtener_conexion,
+)
+
+from aplicacion.persistencia.identificadores import (
+    numero_identificador_reservacion,
+)
 
 
-def _fila_a_reservacion(fila):
+def _fila_a_reservacion(
+    fila,
+):
     """
-    Convierte una fila de SQLite en una Reservacion.
+    Convierte una fila SQLite en Reservacion.
     """
 
     if fila is None:
         return None
 
     return Reservacion(
-        carne_estudiante=fila["carne_estudiante"],
-        codigo_sala=fila["codigo_sala"],
+        carne_estudiante=(
+            fila["carne_estudiante"]
+        ),
+        codigo_sala=(
+            fila["codigo_sala"]
+        ),
         fecha=fila["fecha"],
-        hora_inicio=fila["hora_inicio"],
-        duracion_horas=fila["duracion_horas"],
-        cantidad_personas=fila["cantidad_personas"],
+        hora_inicio=(
+            fila["hora_inicio"]
+        ),
+        duracion_horas=(
+            fila["duracion_horas"]
+        ),
+        cantidad_personas=(
+            fila["cantidad_personas"]
+        ),
         estado=fila["estado"],
         id=fila["id"],
     )
@@ -34,19 +54,22 @@ def guardar_reservacion(
     ruta_base_datos=None,
 ):
     """
-    Guarda una nueva reservacion.
+    Guarda una reservacion nueva.
 
-    El identificador es generado exclusivamente
-    por SQLite.
+    SQLite genera automaticamente el ID numerico.
     """
 
     if reservacion.id is not None:
         raise ValueError(
-            "Una reservación nueva no puede tener "
-            "un identificador asignado manualmente."
+            (
+                "Una reservación nueva no debe "
+                "tener identificador."
+            )
         )
 
-    conexion = obtener_conexion(ruta_base_datos)
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         cursor = conexion.execute(
@@ -75,9 +98,11 @@ def guardar_reservacion(
 
         conexion.commit()
 
-        identificador = cursor.lastrowid
+        identificador = (
+            cursor.lastrowid
+        )
 
-    except sqlite3.Error:
+    except Exception:
         conexion.rollback()
         raise
 
@@ -95,12 +120,18 @@ def obtener_reservacion_por_id(
     ruta_base_datos=None,
 ):
     """
-    Busca una reservacion por su identificador.
+    Obtiene una reservacion.
 
-    Devuelve None si no existe.
+    Acepta tanto 1 como R0001.
     """
 
-    conexion = obtener_conexion(ruta_base_datos)
+    numero = numero_identificador_reservacion(
+        identificador
+    )
+
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         fila = conexion.execute(
@@ -114,28 +145,34 @@ def obtener_reservacion_por_id(
                 duracion_horas,
                 cantidad_personas,
                 estado
+
             FROM reservaciones
+
             WHERE id = ?
             """,
-            (identificador,),
+            (
+                numero,
+            ),
         ).fetchone()
 
     finally:
         conexion.close()
 
-    return _fila_a_reservacion(fila)
+    return _fila_a_reservacion(
+        fila
+    )
 
 
 def listar_reservaciones(
     ruta_base_datos=None,
 ):
     """
-    Devuelve el historial completo de reservaciones.
-
-    Incluye reservaciones activas y canceladas.
+    Devuelve todas las reservaciones.
     """
 
-    conexion = obtener_conexion(ruta_base_datos)
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         filas = conexion.execute(
@@ -149,7 +186,9 @@ def listar_reservaciones(
                 duracion_horas,
                 cantidad_personas,
                 estado
+
             FROM reservaciones
+
             ORDER BY
                 fecha,
                 hora_inicio,
@@ -161,7 +200,9 @@ def listar_reservaciones(
         conexion.close()
 
     return [
-        _fila_a_reservacion(fila)
+        _fila_a_reservacion(
+            fila
+        )
         for fila in filas
     ]
 
@@ -171,13 +212,12 @@ def listar_reservaciones_por_carne(
     ruta_base_datos=None,
 ):
     """
-    Devuelve todas las reservaciones asociadas
-    con un estudiante.
-
-    Incluye reservaciones activas y canceladas.
+    Devuelve reservaciones de un estudiante.
     """
 
-    conexion = obtener_conexion(ruta_base_datos)
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         filas = conexion.execute(
@@ -191,21 +231,84 @@ def listar_reservaciones_por_carne(
                 duracion_horas,
                 cantidad_personas,
                 estado
+
             FROM reservaciones
+
             WHERE carne_estudiante = ?
+                  COLLATE NOCASE
+
             ORDER BY
                 fecha,
                 hora_inicio,
                 id
             """,
-            (carne,),
+            (
+                carne,
+            ),
         ).fetchall()
 
     finally:
         conexion.close()
 
     return [
-        _fila_a_reservacion(fila)
+        _fila_a_reservacion(
+            fila
+        )
+        for fila in filas
+    ]
+
+
+def listar_reservaciones_activas_sala_fecha(
+    codigo_sala,
+    fecha,
+    ruta_base_datos=None,
+):
+    """
+    Devuelve reservaciones activas de una sala
+    en una fecha determinada.
+    """
+
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
+
+    try:
+        filas = conexion.execute(
+            """
+            SELECT
+                id,
+                carne_estudiante,
+                codigo_sala,
+                fecha,
+                hora_inicio,
+                duracion_horas,
+                cantidad_personas,
+                estado
+
+            FROM reservaciones
+
+            WHERE codigo_sala = ?
+                  COLLATE NOCASE
+              AND fecha = ?
+              AND estado = 'activa'
+
+            ORDER BY
+                hora_inicio,
+                id
+            """,
+            (
+                codigo_sala,
+                fecha,
+            ),
+        ).fetchall()
+
+    finally:
+        conexion.close()
+
+    return [
+        _fila_a_reservacion(
+            fila
+        )
         for fila in filas
     ]
 
@@ -216,29 +319,37 @@ def actualizar_reservacion(
 ):
     """
     Actualiza una reservacion existente.
-
-    El identificador no se modifica.
     """
 
     if reservacion.id is None:
         raise ValueError(
-            "La reservación debe tener un identificador."
+            (
+                "La reservación debe tener "
+                "identificador."
+            )
         )
 
-    conexion = obtener_conexion(ruta_base_datos)
+    numero = numero_identificador_reservacion(
+        reservacion.id
+    )
+
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         cursor = conexion.execute(
             """
             UPDATE reservaciones
-            SET
-                carne_estudiante = ?,
+
+            SET carne_estudiante = ?,
                 codigo_sala = ?,
                 fecha = ?,
                 hora_inicio = ?,
                 duracion_horas = ?,
                 cantidad_personas = ?,
                 estado = ?
+
             WHERE id = ?
             """,
             (
@@ -249,22 +360,31 @@ def actualizar_reservacion(
                 reservacion.duracion_horas,
                 reservacion.cantidad_personas,
                 reservacion.estado,
-                reservacion.id,
+                numero,
             ),
         )
 
         conexion.commit()
 
-        actualizada = cursor.rowcount > 0
+        actualizado = (
+            cursor.rowcount
+            > 0
+        )
 
-    except sqlite3.Error:
+    except Exception:
         conexion.rollback()
         raise
 
     finally:
         conexion.close()
 
-    return actualizada
+    if not actualizado:
+        return None
+
+    return obtener_reservacion_por_id(
+        numero,
+        ruta_base_datos,
+    )
 
 
 def marcar_reservacion_cancelada(
@@ -272,84 +392,48 @@ def marcar_reservacion_cancelada(
     ruta_base_datos=None,
 ):
     """
-    Cambia una reservacion activa al estado cancelada.
-
-    La reservacion no se elimina del historial.
+    Marca como cancelada una reservacion activa.
     """
 
-    conexion = obtener_conexion(ruta_base_datos)
+    numero = numero_identificador_reservacion(
+        identificador
+    )
+
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         cursor = conexion.execute(
             """
             UPDATE reservaciones
+
             SET estado = 'cancelada'
+
             WHERE id = ?
               AND estado = 'activa'
             """,
-            (identificador,),
+            (
+                numero,
+            ),
         )
 
         conexion.commit()
 
-        actualizada = cursor.rowcount > 0
+        resultado = (
+            cursor.rowcount
+            > 0
+        )
 
-    except sqlite3.Error:
+    except Exception:
         conexion.rollback()
         raise
 
     finally:
         conexion.close()
 
-    return actualizada
+    return resultado
 
-def listar_reservaciones_activas_sala_fecha(
-    codigo_sala,
-    fecha,
-    ruta_base_datos=None,
-):
-    """
-    Devuelve las reservaciones activas de una sala
-    para una fecha determinada.
-
-    Las reservaciones canceladas no se incluyen.
-    """
-
-    conexion = obtener_conexion(ruta_base_datos)
-
-    try:
-        filas = conexion.execute(
-            """
-            SELECT
-                id,
-                carne_estudiante,
-                codigo_sala,
-                fecha,
-                hora_inicio,
-                duracion_horas,
-                cantidad_personas,
-                estado
-            FROM reservaciones
-            WHERE codigo_sala = ?
-              AND fecha = ?
-              AND estado = 'activa'
-            ORDER BY
-                hora_inicio,
-                id
-            """,
-            (
-                codigo_sala,
-                fecha,
-            ),
-        ).fetchall()
-
-    finally:
-        conexion.close()
-
-    return [
-        _fila_a_reservacion(fila)
-        for fila in filas
-    ]
 
 def consultar_reservaciones_panel(
     fecha=None,
@@ -358,83 +442,90 @@ def consultar_reservaciones_panel(
     ruta_base_datos=None,
 ):
     """
-    Consulta las reservaciones que deben mostrarse
-    en el panel principal.
-
-    Permite combinar opcionalmente filtros de fecha,
-    sala y estado.
-
-    La consulta incluye informacion descriptiva del
-    estudiante y de la sala.
+    Consulta reservaciones para el panel.
     """
 
-    conexion = obtener_conexion(
-        ruta_base_datos
-    )
-
-    consulta = """
-        SELECT
-            r.id,
-            r.carne_estudiante,
-            e.nombre AS nombre_estudiante,
-            r.codigo_sala,
-            s.nombre AS nombre_sala,
-            r.fecha,
-            r.hora_inicio,
-            r.duracion_horas,
-            r.cantidad_personas,
-            r.estado
-
-        FROM reservaciones r
-
-        INNER JOIN estudiantes e
-            ON e.carne = r.carne_estudiante
-
-        INNER JOIN salas s
-            ON s.codigo = r.codigo_sala
-
-        WHERE 1 = 1
-    """
-
+    condiciones = []
     parametros = []
 
     if fecha is not None:
-        consulta += """
-            AND r.fecha = ?
-        """
+        condiciones.append(
+            "r.fecha = ?"
+        )
 
         parametros.append(
             fecha
         )
 
     if codigo_sala is not None:
-        consulta += """
-            AND r.codigo_sala = ?
-        """
+        condiciones.append(
+            """
+            r.codigo_sala = ?
+            COLLATE NOCASE
+            """
+        )
 
         parametros.append(
             codigo_sala
         )
 
     if estado is not None:
-        consulta += """
-            AND r.estado = ?
-        """
+        condiciones.append(
+            "r.estado = ?"
+        )
 
         parametros.append(
             estado
         )
 
-    consulta += """
-        ORDER BY
-            r.fecha,
-            r.hora_inicio,
-            r.id
-    """
+    where = ""
+
+    if condiciones:
+        where = (
+            "WHERE "
+            + " AND ".join(
+                condiciones
+            )
+        )
+
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         filas = conexion.execute(
-            consulta,
+            f"""
+            SELECT
+                r.id,
+                r.carne_estudiante,
+                e.nombre
+                    AS nombre_estudiante,
+                r.codigo_sala,
+                s.nombre
+                    AS nombre_sala,
+                r.fecha,
+                r.hora_inicio,
+                r.duracion_horas,
+                r.cantidad_personas,
+                r.estado
+
+            FROM reservaciones r
+
+            INNER JOIN estudiantes e
+                ON e.carne =
+                   r.carne_estudiante
+
+            INNER JOIN salas s
+                ON s.codigo =
+                   r.codigo_sala
+
+            {where}
+
+            ORDER BY
+                r.fecha,
+                r.hora_inicio,
+                r.id
+            """,
             parametros,
         ).fetchall()
 
@@ -442,9 +533,12 @@ def consultar_reservaciones_panel(
         conexion.close()
 
     return [
-        dict(fila)
+        dict(
+            fila
+        )
         for fila in filas
     ]
+
 
 def consultar_reservaciones_por_rango(
     fecha_inicial,
@@ -452,12 +546,8 @@ def consultar_reservaciones_por_rango(
     ruta_base_datos=None,
 ):
     """
-    Consulta las reservaciones comprendidas entre
-    dos fechas, incluyendo ambos extremos.
-
-    Incluye reservaciones activas y canceladas,
-    junto con datos descriptivos del estudiante
-    y de la sala.
+    Consulta reservaciones dentro de un rango
+    inclusivo de fechas.
     """
 
     conexion = obtener_conexion(
@@ -470,9 +560,11 @@ def consultar_reservaciones_por_rango(
             SELECT
                 r.id,
                 r.carne_estudiante,
-                e.nombre AS nombre_estudiante,
+                e.nombre
+                    AS nombre_estudiante,
                 r.codigo_sala,
-                s.nombre AS nombre_sala,
+                s.nombre
+                    AS nombre_sala,
                 r.fecha,
                 r.hora_inicio,
                 r.duracion_horas,
@@ -482,10 +574,12 @@ def consultar_reservaciones_por_rango(
             FROM reservaciones r
 
             INNER JOIN estudiantes e
-                ON e.carne = r.carne_estudiante
+                ON e.carne =
+                   r.carne_estudiante
 
             INNER JOIN salas s
-                ON s.codigo = r.codigo_sala
+                ON s.codigo =
+                   r.codigo_sala
 
             WHERE r.fecha >= ?
               AND r.fecha <= ?
@@ -505,6 +599,8 @@ def consultar_reservaciones_por_rango(
         conexion.close()
 
     return [
-        dict(fila)
+        dict(
+            fila
+        )
         for fila in filas
     ]

@@ -3,35 +3,56 @@ Modelo de reservacion.
 """
 
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 
 
-ESTADO_ACTIVA = "activa"
-ESTADO_CANCELADA = "cancelada"
-
-
-@dataclass(slots=True)
+@dataclass(
+    slots=True,
+)
 class Reservacion:
+    """
+    Representa una reservacion del sistema.
+
+    El campo id conserva el identificador numerico
+    utilizado internamente por SQLite.
+
+    La propiedad identificador presenta el formato
+    publico R0001, R0002, R0003...
+    """
+
     carne_estudiante: str
     codigo_sala: str
     fecha: str
     hora_inicio: str
     duracion_horas: int
     cantidad_personas: int
-    estado: str = ESTADO_ACTIVA
+    estado: str = "activa"
     id: int | None = None
 
     @property
-    def esta_activa(self):
-        return self.estado == ESTADO_ACTIVA
+    def esta_activa(
+        self,
+    ):
+        """
+        Indica si la reservacion se encuentra activa.
+        """
+
+        return (
+            self.estado
+            == "activa"
+        )
 
     @property
-    def identificador(self):
+    def identificador(
+        self,
+    ):
         """
-        Identificador publico de la reservacion.
+        Devuelve el identificador visible.
 
-        SQLite conserva internamente un entero
-        AUTOINCREMENT, pero el identificador visible
-        cumple el formato R0001, R0002, etc.
+        Ejemplos:
+
+        1  -> R0001
+        25 -> R0025
         """
 
         if self.id is None:
@@ -40,32 +61,25 @@ class Reservacion:
         return f"R{self.id:04d}"
 
     @property
-    def hora_fin(self):
+    def hora_fin(
+        self,
+    ):
         """
-        Calcula la hora de finalizacion a partir de
-        la hora de inicio y la duracion.
+        Calcula la hora final de la reservacion.
         """
 
-        hora, minuto = map(
-            int,
-            self.hora_inicio.split(":"),
+        inicio = datetime.strptime(
+            self.hora_inicio,
+            "%H:%M",
         )
 
-        minutos_totales = (
-            hora * 60
-            + minuto
-            + self.duracion_horas * 60
+        fin = (
+            inicio
+            + timedelta(
+                hours=self.duracion_horas
+            )
         )
 
-        hora_fin = (
-            minutos_totales // 60
-        )
-
-        minuto_fin = (
-            minutos_totales % 60
-        )
-
-        return (
-            f"{hora_fin:02d}:"
-            f"{minuto_fin:02d}"
+        return fin.strftime(
+            "%H:%M"
         )
