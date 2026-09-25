@@ -193,3 +193,30 @@ mayúsculas y minúsculas.
 Los estudiantes inactivos permanecen registrados en el sistema y
 continúan apareciendo en las consultas e historial, pero posteriormente
 no podrán generar nuevas reservaciones.
+
+## Gestión de salas
+
+El módulo de salas permite:
+
+- registrar nuevas salas;
+- consultar todas las salas;
+- buscar una sala por código;
+- modificar el nombre;
+- modificar la capacidad;
+- cambiar el estado entre disponible y fuera de servicio.
+
+El código de una sala funciona como identificador y es inmutable después
+de su registro.
+
+Los códigos se normalizan a mayúsculas y su unicidad no distingue entre
+mayúsculas y minúsculas.
+
+La capacidad debe ser un número entero mayor que cero.
+
+Cuando se intenta reducir la capacidad de una sala, la aplicación
+verifica las reservaciones activas presentes o futuras. La operación se
+rechaza si existe alguna reservación cuya cantidad de personas supere la
+nueva capacidad.
+
+Las reservaciones canceladas y las correspondientes a fechas pasadas no
+bloquean una reducción de capacidad.
