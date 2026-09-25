@@ -2,6 +2,11 @@
 Servicios principales de la aplicacion.
 """
 
+from aplicacion.servicios.servicio_disponibilidad import (
+    consultar_horarios_disponibles,
+    verificar_disponibilidad,
+)
+
 from aplicacion.servicios.servicio_estudiantes import (
     buscar_estudiante,
     consultar_estudiantes,
@@ -41,4 +46,7 @@ __all__ = [
     "buscar_reservaciones_estudiante",
     "cancelar_reservacion",
     "modificar_reservacion",
+
+    "verificar_disponibilidad",
+    "consultar_horarios_disponibles",
 ]

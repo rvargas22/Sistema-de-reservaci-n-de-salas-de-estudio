@@ -246,3 +246,32 @@ alguna validación falla, la reservación almacenada permanece sin cambios.
 
 Los identificadores son generados automáticamente por SQLite y no se
 reutilizan.
+
+## Consulta de disponibilidad
+
+La aplicación permite consultar los horarios disponibles de una sala sin
+crear una reservación.
+
+La consulta considera:
+
+- código de sala.
+- fecha.
+- duración de una o dos horas.
+- horario de funcionamiento entre 08:00 y 20:00.
+- reservaciones activas existentes.
+- estado de la sala.
+
+Una reservación produce conflicto cuando se cumple:
+
+`inicio_nuevo < fin_existente`
+y
+`fin_nuevo > inicio_existente`
+
+Las reservaciones consecutivas están permitidas. Por ejemplo, una
+reservación que termina a las 10:00 no impide otra que inicia exactamente
+a las 10:00.
+
+Las reservaciones canceladas no bloquean disponibilidad.
+
+Las consultas de disponibilidad son operaciones de solo lectura y no
+crean ni modifican registros en SQLite.

@@ -302,3 +302,51 @@ def marcar_reservacion_cancelada(
         conexion.close()
 
     return actualizada
+
+def listar_reservaciones_activas_sala_fecha(
+    codigo_sala,
+    fecha,
+    ruta_base_datos=None,
+):
+    """
+    Devuelve las reservaciones activas de una sala
+    para una fecha determinada.
+
+    Las reservaciones canceladas no se incluyen.
+    """
+
+    conexion = obtener_conexion(ruta_base_datos)
+
+    try:
+        filas = conexion.execute(
+            """
+            SELECT
+                id,
+                carne_estudiante,
+                codigo_sala,
+                fecha,
+                hora_inicio,
+                duracion_horas,
+                cantidad_personas,
+                estado
+            FROM reservaciones
+            WHERE codigo_sala = ?
+              AND fecha = ?
+              AND estado = 'activa'
+            ORDER BY
+                hora_inicio,
+                id
+            """,
+            (
+                codigo_sala,
+                fecha,
+            ),
+        ).fetchall()
+
+    finally:
+        conexion.close()
+
+    return [
+        _fila_a_reservacion(fila)
+        for fila in filas
+    ]
