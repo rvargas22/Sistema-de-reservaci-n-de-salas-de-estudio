@@ -1,13 +1,29 @@
 """
-Modelo de estudiante.
+Modelo que representa a un estudiante del sistema.
 """
 
+from dataclasses import dataclass
 
+
+ESTADO_ACTIVO = "activo"
+ESTADO_INACTIVO = "inactivo"
+
+
+@dataclass(slots=True)
 class Estudiante:
-    """Representa un estudiante del sistema."""
+    """
+    Representa un estudiante registrado en el sistema.
+    """
 
-    def __init__(self, carne, nombre, correo, estado="activo"):
-        self.carne = carne
-        self.nombre = nombre
-        self.correo = correo
-        self.estado = estado
+    carne: str
+    nombre: str
+    correo: str
+    estado: str = ESTADO_ACTIVO
+
+    @property
+    def esta_activo(self):
+        """
+        Indica si el estudiante se encuentra activo.
+        """
+
+        return self.estado == ESTADO_ACTIVO

@@ -57,3 +57,62 @@ Las pruebas automatizadas se ejecutan con:
 
 ```bash
 pytest -v
+
+## Modelos del dominio
+
+La aplicación utiliza tres modelos principales:
+
+### Estudiante
+
+Representa a los estudiantes registrados en el sistema.
+
+Atributos principales:
+
+- carné
+- nombre
+- correo
+- estado
+
+Los estados utilizados son:
+
+- activo
+- inactivo
+
+### Sala
+
+Representa las salas que pueden ser utilizadas para reservaciones.
+
+Atributos principales:
+
+- código
+- nombre
+- capacidad
+- estado
+
+Los estados utilizados son:
+
+- disponible
+- fuera_de_servicio
+
+### Reservación
+
+Representa una reservación de una sala por parte de un estudiante.
+
+Atributos principales:
+
+- identificador
+- carné del estudiante
+- código de sala
+- fecha
+- hora de inicio
+- duración
+- cantidad de personas
+- estado
+
+Los estados utilizados son:
+
+- activa
+- cancelada
+
+El identificador de una reservación puede ser `None` antes de que el
+registro sea almacenado en SQLite.
