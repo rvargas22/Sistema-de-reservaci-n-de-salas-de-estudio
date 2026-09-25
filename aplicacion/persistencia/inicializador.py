@@ -147,6 +147,71 @@ def crear_tablas(conexion):
                 REFERENCES salas(codigo)
         );
 
+        CREATE TABLE IF NOT EXISTS series_recurrentes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            carne_estudiante TEXT NOT NULL
+                COLLATE NOCASE,
+
+            codigo_sala TEXT NOT NULL
+                COLLATE NOCASE,
+
+            fecha_inicio TEXT NOT NULL,
+
+            hora_inicio TEXT NOT NULL,
+
+            duracion_horas INTEGER NOT NULL
+                CHECK (
+                    duracion_horas IN (1, 2)
+                ),
+
+            cantidad_personas INTEGER NOT NULL
+                CHECK (
+                    cantidad_personas > 0
+                ),
+
+            total_ocurrencias INTEGER NOT NULL
+                CHECK (
+                    total_ocurrencias BETWEEN 2 AND 8
+                ),
+
+            FOREIGN KEY (carne_estudiante)
+                REFERENCES estudiantes(carne),
+
+            FOREIGN KEY (codigo_sala)
+                REFERENCES salas(codigo)
+        );
+
+
+        CREATE TABLE IF NOT EXISTS ocurrencias_recurrentes (
+            serie_id INTEGER NOT NULL,
+
+            numero_ocurrencia INTEGER NOT NULL
+                CHECK (
+                    numero_ocurrencia >= 1
+                ),
+
+            reservacion_id INTEGER NOT NULL UNIQUE,
+
+            PRIMARY KEY (
+                serie_id,
+                numero_ocurrencia
+            ),
+
+            FOREIGN KEY (serie_id)
+                REFERENCES series_recurrentes(id),
+
+            FOREIGN KEY (reservacion_id)
+                REFERENCES reservaciones(id)
+        );
+
+
+        CREATE INDEX IF NOT EXISTS
+            idx_ocurrencias_recurrentes_serie
+        ON ocurrencias_recurrentes (
+            serie_id,
+            numero_ocurrencia
+        );
 
         CREATE INDEX IF NOT EXISTS
             idx_reservaciones_sala_fecha

@@ -29,6 +29,13 @@ from aplicacion.servicios.servicio_salas import (
     registrar_sala,
 )
 
+from aplicacion.servicios.servicio_recurrencia import (
+    analizar_serie_recurrente,
+    cancelar_ocurrencia_recurrente,
+    cancelar_ocurrencias_futuras,
+    consultar_ocurrencias_serie,
+    crear_serie_recurrente,
+)
 
 __all__ = [
     "registrar_estudiante",
@@ -49,4 +56,9 @@ __all__ = [
 
     "verificar_disponibilidad",
     "consultar_horarios_disponibles",
+    "analizar_serie_recurrente",
+    "crear_serie_recurrente",
+    "consultar_ocurrencias_serie",
+    "cancelar_ocurrencia_recurrente",
+    "cancelar_ocurrencias_futuras",
 ]

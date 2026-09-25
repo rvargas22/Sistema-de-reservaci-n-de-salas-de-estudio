@@ -35,6 +35,14 @@ from aplicacion.persistencia.repositorio_salas import (
     obtener_sala_por_codigo,
 )
 
+from aplicacion.persistencia.repositorio_recurrencia import (
+    cancelar_ocurrencias_posteriores,
+    guardar_serie_recurrente,
+    listar_ocurrencias_serie,
+    obtener_ocurrencia_serie,
+    obtener_serie_recurrente_por_id,
+)
+
 
 __all__ = [
     "obtener_conexion",
@@ -58,4 +66,9 @@ __all__ = [
     "listar_reservaciones_por_carne",
     "actualizar_reservacion",
     "marcar_reservacion_cancelada",
+    "guardar_serie_recurrente",
+    "obtener_serie_recurrente_por_id",
+    "listar_ocurrencias_serie",
+    "obtener_ocurrencia_serie",
+    "cancelar_ocurrencias_posteriores",
 ]

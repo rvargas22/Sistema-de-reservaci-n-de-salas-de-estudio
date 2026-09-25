@@ -275,3 +275,40 @@ Las reservaciones canceladas no bloquean disponibilidad.
 
 Las consultas de disponibilidad son operaciones de solo lectura y no
 crean ni modifican registros en SQLite.
+
+## Reservaciones recurrentes
+
+La aplicación permite crear series semanales de reservaciones.
+
+Una serie debe contener entre 2 y 8 ocurrencias.
+
+Antes de guardar una serie se calculan y validan todas las fechas. La
+aplicación genera un resumen que permite identificar las ocurrencias
+disponibles y aquellas que presentan conflictos.
+
+Si existe cualquier conflicto, la serie completa se rechaza y no se
+guardan ocurrencias parciales.
+
+Cuando todas las ocurrencias son válidas, la serie y sus reservaciones
+se almacenan dentro de una única transacción SQLite.
+
+Cada ocurrencia es una reservación independiente y posee su propio
+identificador.
+
+La aplicación permite cancelar:
+
+- una ocurrencia individual.
+- las ocurrencias posteriores a una ocurrencia seleccionada.
+- opcionalmente, la seleccionada y todas las posteriores.
+
+Las ocurrencias canceladas permanecen almacenadas en el historial.
+
+### Relación entre recurrencia y límite general de reservaciones
+
+RF-14 permite expresamente series de entre 2 y 8 ocurrencias. La
+especificación no define cómo interactúa esta funcionalidad con el límite
+general de tres reservaciones activas por estudiante.
+
+Para mantener operativo el rango definido por RF-14, la creación de una
+serie recurrente utiliza su propio límite de 2 a 8 ocurrencias y no aplica
+el límite RN-11 durante la creación de la serie.
