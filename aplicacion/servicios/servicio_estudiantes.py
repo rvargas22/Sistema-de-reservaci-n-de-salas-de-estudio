@@ -26,17 +26,29 @@ def registrar_estudiante(
     ruta_base_datos=None,
 ):
     """
-    Registra un nuevo estudiante.
+    Registra un estudiante nuevo.
 
-    Los datos se validan y normalizan antes
-    de guardarse.
+    Todo estudiante nuevo debe iniciar activo.
     """
+
+    if (
+        not isinstance(
+            estado,
+            str,
+        )
+        or estado.strip().lower()
+        != "activo"
+    ):
+        raise ErrorReglaNegocio(
+            "Todo estudiante nuevo debe "
+            "registrarse con estado activo."
+        )
 
     estudiante = validar_datos_estudiante(
         carne,
         nombre,
         correo,
-        estado,
+        "activo",
     )
 
     existente = obtener_estudiante_por_carne(
@@ -46,7 +58,8 @@ def registrar_estudiante(
 
     if existente is not None:
         raise ErrorReglaNegocio(
-            "Ya existe un estudiante con ese carné."
+            "Ya existe un estudiante "
+            "con ese carné."
         )
 
     try:
@@ -57,7 +70,8 @@ def registrar_estudiante(
 
     except sqlite3.IntegrityError as error:
         raise ErrorReglaNegocio(
-            "Ya existe un estudiante con ese carné."
+            "Ya existe un estudiante "
+            "con ese carné."
         ) from error
 
     return estudiante
@@ -67,13 +81,9 @@ def buscar_estudiante(
     carne,
     ruta_base_datos=None,
 ):
-    """
-    Busca un estudiante utilizando su carne.
-
-    Devuelve None si no se encuentra.
-    """
-
-    carne = validar_carne(carne)
+    carne = validar_carne(
+        carne
+    )
 
     return obtener_estudiante_por_carne(
         carne,
@@ -84,12 +94,8 @@ def buscar_estudiante(
 def consultar_estudiantes(
     ruta_base_datos=None,
 ):
-    """
-    Devuelve todos los estudiantes registrados.
-    """
-
     return listar_estudiantes(
-        ruta_base_datos,
+        ruta_base_datos
     )
 
 
@@ -100,18 +106,15 @@ def modificar_estudiante(
     estado=None,
     ruta_base_datos=None,
 ):
-    """
-    Modifica los datos permitidos de un estudiante.
+    carne = validar_carne(
+        carne
+    )
 
-    El carne funciona como identificador y no puede
-    ser modificado mediante esta operacion.
-    """
-
-    carne = validar_carne(carne)
-
-    estudiante_actual = obtener_estudiante_por_carne(
-        carne,
-        ruta_base_datos,
+    estudiante_actual = (
+        obtener_estudiante_por_carne(
+            carne,
+            ruta_base_datos,
+        )
     )
 
     if estudiante_actual is None:
@@ -120,19 +123,27 @@ def modificar_estudiante(
         )
 
     if nombre is None:
-        nombre = estudiante_actual.nombre
+        nombre = (
+            estudiante_actual.nombre
+        )
 
     if correo is None:
-        correo = estudiante_actual.correo
+        correo = (
+            estudiante_actual.correo
+        )
 
     if estado is None:
-        estado = estudiante_actual.estado
+        estado = (
+            estudiante_actual.estado
+        )
 
-    estudiante_modificado = validar_datos_estudiante(
-        estudiante_actual.carne,
-        nombre,
-        correo,
-        estado,
+    estudiante_modificado = (
+        validar_datos_estudiante(
+            estudiante_actual.carne,
+            nombre,
+            correo,
+            estado,
+        )
     )
 
     actualizado = actualizar_estudiante(
@@ -142,7 +153,8 @@ def modificar_estudiante(
 
     if not actualizado:
         raise ErrorReglaNegocio(
-            "No fue posible actualizar el estudiante."
+            "No fue posible actualizar "
+            "el estudiante."
         )
 
     return estudiante_modificado

@@ -29,10 +29,18 @@ from aplicacion.servicios import (
     registrar_estudiante,
 )
 
+from aplicacion.validaciones import (
+    ErrorValidacion,
+)
+
 
 class VistaEstudiantes(QWidget):
     """
-    Gestion de estudiantes.
+    Vista encargada de la gestion de estudiantes.
+
+    Permite registrar, consultar y modificar
+    estudiantes sin implementar reglas de negocio
+    directamente en la interfaz.
     """
 
     datos_cambiados = Signal()
@@ -59,6 +67,10 @@ class VistaEstudiantes(QWidget):
     def _crear_interfaz(
         self,
     ):
+        """
+        Construye los controles de la vista.
+        """
+
         titulo = QLabel(
             "Gestión de estudiantes"
         )
@@ -69,9 +81,21 @@ class VistaEstudiantes(QWidget):
 
         self.campo_carne = QLineEdit()
 
+        self.campo_carne.setPlaceholderText(
+            "Ej. A001234567"
+        )
+
         self.campo_nombre = QLineEdit()
 
+        self.campo_nombre.setPlaceholderText(
+            "Nombre completo"
+        )
+
         self.campo_correo = QLineEdit()
+
+        self.campo_correo.setPlaceholderText(
+            "correo@universidad.ac.cr"
+        )
 
         self.combo_estado = QComboBox()
 
@@ -196,6 +220,11 @@ class VistaEstudiantes(QWidget):
     def nuevo(
         self,
     ):
+        """
+        Limpia el formulario y prepara la vista
+        para registrar un estudiante nuevo.
+        """
+
         self.carne_seleccionado = None
 
         self.campo_carne.setEnabled(
@@ -217,11 +246,22 @@ class VistaEstudiantes(QWidget):
     def registrar(
         self,
     ):
+        """
+        Registra un estudiante utilizando la capa
+        de servicios.
+        """
+
         try:
             estudiante = registrar_estudiante(
-                carne=self.campo_carne.text(),
-                nombre=self.campo_nombre.text(),
-                correo=self.campo_correo.text(),
+                carne=(
+                    self.campo_carne.text()
+                ),
+                nombre=(
+                    self.campo_nombre.text()
+                ),
+                correo=(
+                    self.campo_correo.text()
+                ),
                 estado=(
                     self.combo_estado.currentData()
                 ),
@@ -234,12 +274,13 @@ class VistaEstudiantes(QWidget):
                 self,
                 (
                     "Estudiante registrado "
-                    f"correctamente: "
-                    f"{estudiante.carne}"
+                    "correctamente.\n\n"
+                    f"Carné: {estudiante.carne}"
                 ),
             )
 
             self.nuevo()
+
             self.refrescar()
 
             self.datos_cambiados.emit()
@@ -253,14 +294,23 @@ class VistaEstudiantes(QWidget):
     def modificar(
         self,
     ):
+        """
+        Modifica nombre, correo o estado del
+        estudiante seleccionado.
+
+        El carne se conserva como identificador
+        inmutable.
+        """
+
         if self.carne_seleccionado is None:
             mostrar_error(
                 self,
-                ValueError(
+                ErrorValidacion(
                     "Seleccione un estudiante "
                     "antes de modificar."
                 ),
             )
+
             return
 
         try:
@@ -286,8 +336,8 @@ class VistaEstudiantes(QWidget):
                 self,
                 (
                     "Estudiante modificado "
-                    f"correctamente: "
-                    f"{estudiante.carne}"
+                    "correctamente.\n\n"
+                    f"Carné: {estudiante.carne}"
                 ),
             )
 
@@ -306,19 +356,24 @@ class VistaEstudiantes(QWidget):
         fila,
         columna,
     ):
+        """
+        Carga en el formulario el estudiante
+        seleccionado en la tabla.
+        """
+
         del columna
 
-        carne_item = self.tabla.item(
+        item_carne = self.tabla.item(
             fila,
             0,
         )
 
-        if carne_item is None:
+        if item_carne is None:
             return
 
         try:
             estudiante = buscar_estudiante(
-                carne_item.text(),
+                item_carne.text(),
                 self.ruta_base_datos,
             )
 
@@ -333,6 +388,7 @@ class VistaEstudiantes(QWidget):
                 estudiante.carne
             )
 
+            # El carne es inmutable.
             self.campo_carne.setEnabled(
                 False
             )
@@ -345,13 +401,15 @@ class VistaEstudiantes(QWidget):
                 estudiante.correo
             )
 
-            indice = self.combo_estado.findData(
-                estudiante.estado
+            indice_estado = (
+                self.combo_estado.findData(
+                    estudiante.estado
+                )
             )
 
-            if indice >= 0:
+            if indice_estado >= 0:
                 self.combo_estado.setCurrentIndex(
-                    indice
+                    indice_estado
                 )
 
         except Exception as error:
@@ -363,6 +421,11 @@ class VistaEstudiantes(QWidget):
     def refrescar(
         self,
     ):
+        """
+        Recarga desde SQLite todos los estudiantes
+        visibles en la tabla.
+        """
+
         try:
             estudiantes = consultar_estudiantes(
                 self.ruta_base_datos

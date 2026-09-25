@@ -21,6 +21,7 @@ from aplicacion.servicios.servicio_estudiantes import (
 
 from aplicacion.servicios.servicio_panel import (
     consultar_panel,
+    obtener_resumen_panel,
 )
 
 from aplicacion.servicios.servicio_recurrencia import (
@@ -85,4 +86,5 @@ __all__ = [
 
     "consultar_historial_auditoria",
     "consultar_evento_auditoria",
+    "obtener_resumen_panel",
 ]

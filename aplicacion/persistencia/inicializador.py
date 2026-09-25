@@ -4,7 +4,9 @@ Creacion e inicializacion de la base de datos del sistema.
 
 import sqlite3
 
-from aplicacion.persistencia.base_datos import obtener_conexion
+from aplicacion.persistencia.base_datos import (
+    obtener_conexion,
+)
 
 
 ESTUDIANTES_INICIALES = [
@@ -63,7 +65,9 @@ SALAS_INICIALES = [
 ]
 
 
-def crear_tablas(conexion):
+def crear_tablas(
+    conexion,
+):
     """
     Crea las tablas e indices principales del sistema
     si todavia no existen.
@@ -217,7 +221,8 @@ def crear_tablas(conexion):
                     numero_ocurrencia >= 1
                 ),
 
-            reservacion_id INTEGER NOT NULL UNIQUE,
+            reservacion_id INTEGER NOT NULL
+                UNIQUE,
 
             PRIMARY KEY (
                 serie_id,
@@ -319,9 +324,11 @@ def crear_tablas(conexion):
     )
 
 
-def cargar_datos_iniciales(conexion):
+def cargar_datos_iniciales(
+    conexion,
+):
     """
-    Carga los estudiantes y salas iniciales.
+    Carga estudiantes y salas iniciales.
 
     Si los registros ya existen, no se duplican
     ni se sobrescriben.
@@ -337,7 +344,8 @@ def cargar_datos_iniciales(conexion):
         )
         VALUES (?, ?, ?, ?)
 
-        ON CONFLICT(carne) DO NOTHING
+        ON CONFLICT(carne)
+        DO NOTHING
         """,
         ESTUDIANTES_INICIALES,
     )
@@ -352,9 +360,53 @@ def cargar_datos_iniciales(conexion):
         )
         VALUES (?, ?, ?, ?)
 
-        ON CONFLICT(codigo) DO NOTHING
+        ON CONFLICT(codigo)
+        DO NOTHING
         """,
         SALAS_INICIALES,
+    )
+
+
+def eliminar_disparadores_auditoria(
+    conexion,
+):
+    """
+    Elimina versiones anteriores de los triggers
+    de auditoria.
+
+    Esto permite reconstruir siempre los disparadores
+    con la definicion actual del proyecto.
+    """
+
+    conexion.executescript(
+        """
+        DROP TRIGGER IF EXISTS
+            trg_auditoria_estudiante_crear;
+
+        DROP TRIGGER IF EXISTS
+            trg_auditoria_estudiante_modificar;
+
+        DROP TRIGGER IF EXISTS
+            trg_auditoria_sala_crear;
+
+        DROP TRIGGER IF EXISTS
+            trg_auditoria_sala_modificar;
+
+        DROP TRIGGER IF EXISTS
+            trg_auditoria_reservacion_crear;
+
+        DROP TRIGGER IF EXISTS
+            trg_auditoria_reservacion_modificar;
+
+        DROP TRIGGER IF EXISTS
+            trg_auditoria_serie_crear;
+
+        DROP TRIGGER IF EXISTS
+            trg_auditoria_no_modificar;
+
+        DROP TRIGGER IF EXISTS
+            trg_auditoria_no_eliminar;
+        """
     )
 
 
@@ -365,13 +417,13 @@ def crear_disparadores_auditoria(
     Crea los disparadores responsables de registrar
     automaticamente las acciones exitosas.
 
-    Tambien protege el historial de auditoria contra
-    modificaciones y eliminaciones.
+    Tambien protege el historial contra modificaciones
+    y eliminaciones.
     """
 
     conexion.executescript(
         """
-        CREATE TRIGGER IF NOT EXISTS
+        CREATE TRIGGER
             trg_auditoria_estudiante_crear
 
         AFTER INSERT ON estudiantes
@@ -393,7 +445,7 @@ def crear_disparadores_auditoria(
         END;
 
 
-        CREATE TRIGGER IF NOT EXISTS
+        CREATE TRIGGER
             trg_auditoria_estudiante_modificar
 
         AFTER UPDATE ON estudiantes
@@ -415,7 +467,7 @@ def crear_disparadores_auditoria(
         END;
 
 
-        CREATE TRIGGER IF NOT EXISTS
+        CREATE TRIGGER
             trg_auditoria_sala_crear
 
         AFTER INSERT ON salas
@@ -437,7 +489,7 @@ def crear_disparadores_auditoria(
         END;
 
 
-        CREATE TRIGGER IF NOT EXISTS
+        CREATE TRIGGER
             trg_auditoria_sala_modificar
 
         AFTER UPDATE ON salas
@@ -459,7 +511,7 @@ def crear_disparadores_auditoria(
         END;
 
 
-        CREATE TRIGGER IF NOT EXISTS
+        CREATE TRIGGER
             trg_auditoria_reservacion_crear
 
         AFTER INSERT ON reservaciones
@@ -479,12 +531,15 @@ def crear_disparadores_auditoria(
                     AS TEXT
                 ),
                 'Reservación creada: '
-                    || NEW.id
+                    || CAST(
+                        NEW.id
+                        AS TEXT
+                    )
             );
         END;
 
 
-        CREATE TRIGGER IF NOT EXISTS
+        CREATE TRIGGER
             trg_auditoria_reservacion_modificar
 
         AFTER UPDATE ON reservaciones
@@ -521,17 +576,23 @@ def crear_disparadores_auditoria(
                         AND NEW.estado = 'cancelada'
                     THEN
                         'Reservación cancelada: '
-                            || NEW.id
+                        || CAST(
+                            NEW.id
+                            AS TEXT
+                        )
 
                     ELSE
                         'Reservación modificada: '
-                            || NEW.id
+                        || CAST(
+                            NEW.id
+                            AS TEXT
+                        )
                 END
             );
         END;
 
 
-        CREATE TRIGGER IF NOT EXISTS
+        CREATE TRIGGER
             trg_auditoria_serie_crear
 
         AFTER INSERT ON series_recurrentes
@@ -551,12 +612,15 @@ def crear_disparadores_auditoria(
                     AS TEXT
                 ),
                 'Serie recurrente creada: '
-                    || NEW.id
+                    || CAST(
+                        NEW.id
+                        AS TEXT
+                    )
             );
         END;
 
 
-        CREATE TRIGGER IF NOT EXISTS
+        CREATE TRIGGER
             trg_auditoria_no_modificar
 
         BEFORE UPDATE ON auditoria
@@ -569,7 +633,7 @@ def crear_disparadores_auditoria(
         END;
 
 
-        CREATE TRIGGER IF NOT EXISTS
+        CREATE TRIGGER
             trg_auditoria_no_eliminar
 
         BEFORE DELETE ON auditoria
@@ -590,15 +654,17 @@ def inicializar_base_datos(
     """
     Inicializa completamente la base de datos.
 
-    Orden de inicializacion:
+    Orden:
 
-    1. Crea tablas e indices.
-    2. Carga los datos iniciales.
-    3. Crea los disparadores de auditoria.
+    1. Crear tablas e indices.
+    2. Retirar triggers anteriores de auditoria.
+    3. Cargar datos iniciales.
+    4. Crear la version actual de los triggers.
+    5. Confirmar la inicializacion.
 
-    Este orden evita que la carga inicial de estudiantes
-    y salas se registre como una accion realizada durante
-    el uso normal de la aplicacion.
+    Al retirar temporalmente los triggers antes de
+    cargar los datos iniciales se evita registrar
+    esa carga como acciones realizadas por el usuario.
     """
 
     conexion = obtener_conexion(
@@ -607,6 +673,10 @@ def inicializar_base_datos(
 
     try:
         crear_tablas(
+            conexion
+        )
+
+        eliminar_disparadores_auditoria(
             conexion
         )
 

@@ -1,5 +1,5 @@
 """
-Modelo que representa una reservacion de sala.
+Modelo de reservacion.
 """
 
 from dataclasses import dataclass
@@ -11,13 +11,6 @@ ESTADO_CANCELADA = "cancelada"
 
 @dataclass(slots=True)
 class Reservacion:
-    """
-    Representa una reservacion registrada en el sistema.
-
-    El identificador puede ser None antes de guardar
-    la reservacion en SQLite.
-    """
-
     carne_estudiante: str
     codigo_sala: str
     fecha: str
@@ -29,8 +22,50 @@ class Reservacion:
 
     @property
     def esta_activa(self):
+        return self.estado == ESTADO_ACTIVA
+
+    @property
+    def identificador(self):
         """
-        Indica si la reservacion se encuentra activa.
+        Identificador publico de la reservacion.
+
+        SQLite conserva internamente un entero
+        AUTOINCREMENT, pero el identificador visible
+        cumple el formato R0001, R0002, etc.
         """
 
-        return self.estado == ESTADO_ACTIVA
+        if self.id is None:
+            return None
+
+        return f"R{self.id:04d}"
+
+    @property
+    def hora_fin(self):
+        """
+        Calcula la hora de finalizacion a partir de
+        la hora de inicio y la duracion.
+        """
+
+        hora, minuto = map(
+            int,
+            self.hora_inicio.split(":"),
+        )
+
+        minutos_totales = (
+            hora * 60
+            + minuto
+            + self.duracion_horas * 60
+        )
+
+        hora_fin = (
+            minutos_totales // 60
+        )
+
+        minuto_fin = (
+            minutos_totales % 60
+        )
+
+        return (
+            f"{hora_fin:02d}:"
+            f"{minuto_fin:02d}"
+        )

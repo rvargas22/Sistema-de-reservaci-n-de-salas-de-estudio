@@ -9,11 +9,6 @@ from aplicacion.persistencia.base_datos import obtener_conexion
 
 
 def _fila_a_estudiante(fila):
-    """
-    Convierte una fila de SQLite en una instancia
-    del modelo Estudiante.
-    """
-
     if fila is None:
         return None
 
@@ -29,11 +24,9 @@ def guardar_estudiante(
     estudiante,
     ruta_base_datos=None,
 ):
-    """
-    Guarda un nuevo estudiante en la base de datos.
-    """
-
-    conexion = obtener_conexion(ruta_base_datos)
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         conexion.execute(
@@ -70,14 +63,9 @@ def obtener_estudiante_por_carne(
     carne,
     ruta_base_datos=None,
 ):
-    """
-    Busca un estudiante por su carne.
-
-    La busqueda no distingue mayusculas
-    y minusculas debido a COLLATE NOCASE.
-    """
-
-    conexion = obtener_conexion(ruta_base_datos)
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         fila = conexion.execute(
@@ -87,27 +75,35 @@ def obtener_estudiante_por_carne(
                 nombre,
                 correo,
                 estado
+
             FROM estudiantes
+
             WHERE carne = ?
             """,
-            (carne,),
+            (
+                carne,
+            ),
         ).fetchone()
 
     finally:
         conexion.close()
 
-    return _fila_a_estudiante(fila)
+    return _fila_a_estudiante(
+        fila
+    )
 
 
 def listar_estudiantes(
     ruta_base_datos=None,
 ):
     """
-    Devuelve todos los estudiantes registrados,
-    ordenados por carne.
+    Devuelve todos los estudiantes ordenados
+    alfabeticamente por nombre.
     """
 
-    conexion = obtener_conexion(ruta_base_datos)
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         filas = conexion.execute(
@@ -117,8 +113,12 @@ def listar_estudiantes(
                 nombre,
                 correo,
                 estado
+
             FROM estudiantes
-            ORDER BY carne
+
+            ORDER BY
+                nombre COLLATE NOCASE,
+                carne
             """
         ).fetchall()
 
@@ -126,7 +126,9 @@ def listar_estudiantes(
         conexion.close()
 
     return [
-        _fila_a_estudiante(fila)
+        _fila_a_estudiante(
+            fila
+        )
         for fila in filas
     ]
 
@@ -135,22 +137,20 @@ def actualizar_estudiante(
     estudiante,
     ruta_base_datos=None,
 ):
-    """
-    Actualiza nombre, correo y estado.
-
-    El carne no se modifica.
-    """
-
-    conexion = obtener_conexion(ruta_base_datos)
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
 
     try:
         cursor = conexion.execute(
             """
             UPDATE estudiantes
+
             SET
                 nombre = ?,
                 correo = ?,
                 estado = ?
+
             WHERE carne = ?
             """,
             (
@@ -163,7 +163,9 @@ def actualizar_estudiante(
 
         conexion.commit()
 
-        actualizado = cursor.rowcount > 0
+        actualizado = (
+            cursor.rowcount > 0
+        )
 
     except sqlite3.Error:
         conexion.rollback()
