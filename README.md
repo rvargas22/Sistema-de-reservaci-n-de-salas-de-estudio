@@ -137,3 +137,35 @@ a ejecutar.
 Una reservación cancelada conserva permanentemente su identificador.
 Las nuevas reservaciones reciben identificadores diferentes y los
 identificadores anteriores no se reutilizan.
+
+## Validaciones y reglas de negocio
+
+Las validaciones se encuentran separadas de la interfaz gráfica y de la
+persistencia.
+
+La carpeta `aplicacion/validaciones` contiene las reglas relacionadas con:
+
+- estudiantes;
+- salas;
+- reservaciones.
+
+Entre las principales reglas implementadas se encuentran:
+
+- carné de estudiante de exactamente 10 caracteres alfanuméricos;
+- normalización de espacios iniciales y finales;
+- validación de nombre y correo;
+- capacidad positiva de salas;
+- estudiante activo para reservar;
+- sala disponible para reservar;
+- fechas no pasadas;
+- inicio en horas completas;
+- horario de funcionamiento entre 08:00 y 20:00;
+- duración de una o dos horas;
+- cantidad de personas dentro de la capacidad;
+- detección de superposición de reservaciones;
+- reservaciones consecutivas permitidas;
+- máximo de tres reservaciones activas presentes o futuras;
+- las reservaciones canceladas no bloquean disponibilidad.
+
+La lógica de negocio puede probarse directamente sin automatizar clics
+sobre la interfaz gráfica.
