@@ -345,3 +345,43 @@ del panel refleja inmediatamente los datos almacenados en SQLite.
 
 Las consultas del panel son operaciones de solo lectura y no modifican la
 base de datos.
+
+## Reportes y exportación CSV
+
+La aplicación permite generar reportes de reservaciones utilizando un
+rango obligatorio de fechas.
+
+La fecha inicial y la fecha final son obligatorias.
+
+La fecha final debe ser igual o posterior a la fecha inicial.
+
+El rango es inclusivo, por lo que las reservaciones correspondientes a
+ambas fechas límite forman parte del reporte.
+
+Los reportes incluyen reservaciones activas y canceladas.
+
+Cada fila contiene:
+
+- identificador.
+- carné del estudiante.
+- nombre del estudiante.
+- código de sala.
+- nombre de sala.
+- fecha.
+- hora de inicio.
+- duración.
+- cantidad de personas.
+- estado.
+
+Los reportes pueden exportarse en formato CSV con codificación UTF-8.
+
+La codificación conserva correctamente caracteres como tildes y la letra
+ñ.
+
+La exportación utiliza un archivo temporal y solamente crea o reemplaza el
+archivo final después de completar correctamente la escritura.
+
+Si el usuario cancela la selección del destino, no se crea ningún archivo.
+
+La generación y exportación de reportes son operaciones de lectura y no
+modifican las reservaciones almacenadas.

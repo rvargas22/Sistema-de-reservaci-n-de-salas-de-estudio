@@ -445,3 +445,66 @@ def consultar_reservaciones_panel(
         dict(fila)
         for fila in filas
     ]
+
+def consultar_reservaciones_por_rango(
+    fecha_inicial,
+    fecha_final,
+    ruta_base_datos=None,
+):
+    """
+    Consulta las reservaciones comprendidas entre
+    dos fechas, incluyendo ambos extremos.
+
+    Incluye reservaciones activas y canceladas,
+    junto con datos descriptivos del estudiante
+    y de la sala.
+    """
+
+    conexion = obtener_conexion(
+        ruta_base_datos
+    )
+
+    try:
+        filas = conexion.execute(
+            """
+            SELECT
+                r.id,
+                r.carne_estudiante,
+                e.nombre AS nombre_estudiante,
+                r.codigo_sala,
+                s.nombre AS nombre_sala,
+                r.fecha,
+                r.hora_inicio,
+                r.duracion_horas,
+                r.cantidad_personas,
+                r.estado
+
+            FROM reservaciones r
+
+            INNER JOIN estudiantes e
+                ON e.carne = r.carne_estudiante
+
+            INNER JOIN salas s
+                ON s.codigo = r.codigo_sala
+
+            WHERE r.fecha >= ?
+              AND r.fecha <= ?
+
+            ORDER BY
+                r.fecha,
+                r.hora_inicio,
+                r.id
+            """,
+            (
+                fecha_inicial,
+                fecha_final,
+            ),
+        ).fetchall()
+
+    finally:
+        conexion.close()
+
+    return [
+        dict(fila)
+        for fila in filas
+    ]

@@ -28,6 +28,7 @@ from aplicacion.persistencia.repositorio_recurrencia import (
 from aplicacion.persistencia.repositorio_reservaciones import (
     actualizar_reservacion,
     consultar_reservaciones_panel,
+    consultar_reservaciones_por_rango,
     guardar_reservacion,
     listar_reservaciones,
     listar_reservaciones_activas_sala_fecha,
@@ -74,4 +75,5 @@ __all__ = [
     "listar_ocurrencias_serie",
     "obtener_ocurrencia_serie",
     "cancelar_ocurrencias_posteriores",
+    "consultar_reservaciones_por_rango",
 ]

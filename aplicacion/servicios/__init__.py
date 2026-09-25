@@ -40,6 +40,10 @@ from aplicacion.servicios.servicio_salas import (
     modificar_sala,
     registrar_sala,
 )
+from aplicacion.servicios.servicio_reportes import (
+    exportar_reporte_csv,
+    generar_reporte_reservaciones,
+)
 
 
 __all__ = [
@@ -67,6 +71,7 @@ __all__ = [
     "consultar_ocurrencias_serie",
     "cancelar_ocurrencia_recurrente",
     "cancelar_ocurrencias_futuras",
-
+    "generar_reporte_reservaciones",
+    "exportar_reporte_csv",
     "consultar_panel",
 ]
