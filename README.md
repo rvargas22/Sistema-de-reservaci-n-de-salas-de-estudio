@@ -1,6 +1,4 @@
-from pathlib import Path
-
-contenido = """# Sistema de reservación de salas de estudio
+# Sistema de reservación de salas de estudio
 
 Aplicación de escritorio desarrollada en Python con PySide6 y SQLite para la administración de estudiantes, salas y reservaciones de espacios de estudio.
 
