@@ -1,11 +1,10 @@
-# Sistema de reservación de salas de estudio
+from pathlib import Path
 
-Aplicación de escritorio desarrollada en Python con PySide6 y SQLite para
-la administración de estudiantes, salas y reservaciones de espacios de
-estudio.
+contenido = """# Sistema de reservación de salas de estudio
 
-Proyecto desarrollado para el curso TI3603 — Calidad en Sistemas de
-Información del Tecnológico de Costa Rica.
+Aplicación de escritorio desarrollada en Python con PySide6 y SQLite para la administración de estudiantes, salas y reservaciones de espacios de estudio.
+
+Proyecto desarrollado para el curso TI3603 — Calidad en Sistemas de Información del Tecnológico de Costa Rica.
 
 ## Versión
 
@@ -17,8 +16,7 @@ Versión candidata actual:
 
 `1.0.0-rc2`
 
-Esta versión corresponde a una versión candidata de la Fase 2 y debe
-superar la verificación final antes de considerarse versión definitiva.
+Esta versión corresponde a la entrega de la Fase 2 del proyecto.
 
 ## Requisitos
 
@@ -29,19 +27,20 @@ Se requiere:
 - un entorno gráfico compatible con Qt.
 - Git, únicamente si se desea clonar el repositorio.
 
-SQLite no requiere instalación adicional, ya que se utiliza mediante el
-módulo `sqlite3` incluido con Python.
+SQLite no requiere instalación adicional, ya que se utiliza mediante el módulo `sqlite3` incluido con Python.
 
 ## Dependencias
 
-Las dependencias externas se encuentran declaradas en:
+Las dependencias externas utilizadas durante el desarrollo se encuentran declaradas en:
 
 `requirements.txt`
 
 Actualmente se utilizan:
 
 - PySide6 para la interfaz gráfica.
-- pytest para las pruebas automatizadas.
+- pytest para comprobaciones internas realizadas durante el desarrollo.
+
+Las pruebas con pytest se utilizaron como apoyo para verificar el comportamiento de distintos componentes durante la Fase 2. Los archivos de prueba no forman parte de esta entrega, ya que no corresponden todavía al entregable formal de pruebas cruzadas de las fases posteriores.
 
 ## Obtener el proyecto
 
@@ -49,7 +48,7 @@ Repositorio:
 
 `https://github.com/rvargas22/Sistema-de-reservaci-n-de-salas-de-estudio`
 
-Clonar:
+Para clonar el repositorio:
 
 ```bash
 git clone https://github.com/rvargas22/Sistema-de-reservaci-n-de-salas-de-estudio.git
@@ -60,6 +59,8 @@ Entrar al directorio:
 ```bash
 cd Sistema-de-reservaci-n-de-salas-de-estudio
 ```
+
+Si se utiliza el archivo ZIP de la entrega, basta con descomprimirlo y abrir una terminal en la carpeta principal del proyecto.
 
 ## Crear el entorno virtual
 
@@ -74,14 +75,14 @@ En Windows PowerShell:
 
 ```powershell
 py -m venv .venv
-.venv\Scripts\Activate.ps1
+.venv\\Scripts\\Activate.ps1
 ```
 
 En Windows CMD:
 
 ```cmd
 py -m venv .venv
-.venv\Scripts\activate.bat
+.venv\\Scripts\\activate.bat
 ```
 
 ## Instalar dependencias
@@ -95,21 +96,19 @@ pip install -r requirements.txt
 
 ## Ejecutar la aplicación
 
-Ejecutar:
+Desde la carpeta principal del proyecto, ejecutar:
 
 ```bash
 python main.py
 ```
 
-La primera ejecución crea automáticamente la base SQLite si todavía no
-existe.
+La primera ejecución crea automáticamente la base de datos SQLite si todavía no existe.
 
-La base de datos utilizada por defecto se encuentra en:
+La base de datos utilizada por defecto se crea en:
 
 `datos/reservaciones.db`
 
-La aplicación no necesita modificar el código fuente para determinar esta
-ruta.
+La ruta se determina automáticamente a partir de la ubicación del proyecto, por lo que no es necesario modificar el código fuente.
 
 ## Datos iniciales
 
@@ -131,8 +130,7 @@ También se cargan las siguientes salas:
 | S04 | Sala multimedia | 8 | fuera_de_servicio |
 | S05 | Cubículo individual | 1 | disponible |
 
-La inicialización es idempotente: ejecutar nuevamente la aplicación no
-debe duplicar estos registros.
+La inicialización es idempotente: ejecutar nuevamente la aplicación no duplica estos registros.
 
 ## Módulos de la interfaz
 
@@ -152,23 +150,22 @@ La navegación se realiza desde el menú lateral de la ventana principal.
 
 El módulo de estudiantes permite:
 
-- registrar estudiantes.
-- consultar estudiantes.
-- modificar nombre y correo.
-- activar o inactivar estudiantes.
+- registrar estudiantes;
+- consultar estudiantes;
+- modificar nombre y correo;
+- activar o inactivar estudiantes;
 - conservar el carné como identificador inmutable.
 
-Las validaciones se ejecutan en la capa de servicios y reglas de negocio,
-no directamente en la interfaz.
+Las validaciones se ejecutan en la capa de servicios y reglas de negocio, no directamente en la interfaz.
 
 ## Salas
 
 El módulo de salas permite:
 
-- consultar salas.
-- registrar nuevas salas.
-- modificar nombre.
-- modificar capacidad.
+- consultar salas;
+- registrar nuevas salas;
+- modificar nombre;
+- modificar capacidad;
 - cambiar el estado entre disponible y fuera de servicio.
 
 El código de una sala existente no se modifica.
@@ -177,11 +174,11 @@ El código de una sala existente no se modifica.
 
 La aplicación permite consultar horarios disponibles considerando:
 
-- sala.
-- fecha.
-- duración.
-- reservaciones activas existentes.
-- horario permitido.
+- sala;
+- fecha;
+- duración;
+- reservaciones activas existentes;
+- horario permitido;
 - superposición.
 
 La consulta de disponibilidad no crea una reservación.
@@ -190,16 +187,15 @@ La consulta de disponibilidad no crea una reservación.
 
 La aplicación permite:
 
-- crear reservaciones.
-- consultar historial.
-- modificar reservaciones activas.
-- cancelar reservaciones.
-- consultar por estudiante.
-- validar disponibilidad.
+- crear reservaciones;
+- consultar el historial;
+- modificar reservaciones activas;
+- cancelar reservaciones;
+- consultar por estudiante;
+- validar disponibilidad;
 - conservar reservaciones canceladas en el historial.
 
-Las operaciones aplican las reglas de negocio antes de modificar la base
-de datos.
+Las operaciones aplican las reglas de negocio antes de modificar la base de datos.
 
 ## Recurrencia
 
@@ -207,58 +203,51 @@ El sistema permite crear series de reservaciones semanales.
 
 Antes de guardar una serie se analizan sus ocurrencias.
 
-También pueden cancelarse ocurrencias individuales o posteriores de una
-serie.
+También pueden cancelarse ocurrencias individuales o las ocurrencias posteriores de una serie.
 
-Las escrituras de una serie se realizan de forma transaccional para evitar
-datos parciales.
+Las escrituras de una serie se realizan de forma transaccional para evitar datos parciales.
 
 ## Panel de control
 
 El panel permite consultar reservaciones y utilizar filtros combinados por:
 
-- fecha.
-- sala.
+- fecha;
+- sala;
 - estado.
 
 La información se obtiene nuevamente desde SQLite al refrescar la vista.
 
 ## Reportes
 
-La aplicación permite generar reportes de reservaciones para un rango de
-fechas.
+La aplicación permite generar reportes de reservaciones para un rango de fechas.
 
-Los reportes pueden exportarse en formato CSV utilizando codificación
-UTF-8.
+Los reportes pueden exportarse en formato CSV utilizando codificación UTF-8.
 
-El archivo contiene encabezados y datos de estudiante, sala, fecha,
-horario, duración, cantidad de personas y estado.
+El archivo contiene encabezados y datos de estudiante, sala, fecha, horario, duración, cantidad de personas y estado.
 
 La cancelación del selector de destino no crea un archivo parcial.
 
 ## Auditoría
 
-Las operaciones relevantes se registran automáticamente en un historial de
-auditoría.
+Las operaciones relevantes se registran automáticamente en un historial de auditoría.
 
 Los eventos contienen:
 
-- fecha y hora.
-- acción.
-- entidad.
-- identificador.
+- fecha y hora;
+- acción;
+- entidad;
+- identificador;
 - detalle.
 
 La auditoría se implementa mediante triggers de SQLite.
 
-El historial es de solo lectura y las operaciones rechazadas no se
-registran como acciones exitosas.
+El historial es de solo lectura y las operaciones rechazadas no se registran como acciones exitosas.
 
 ## Arquitectura
 
 La aplicación mantiene separación entre responsabilidades.
 
-Estructura principal:
+Estructura principal del código:
 
 ```text
 aplicacion/
@@ -268,17 +257,13 @@ aplicacion/
 ├── servicios/
 └── validaciones/
 
-datos/
-documentacion/
-evidencias/
-pruebas/
-
 main.py
 requirements.txt
 VERSION
-pytest.ini
 README.md
 ```
+
+La carpeta `datos/` se crea automáticamente durante la ejecución cuando es necesaria para almacenar la base de datos local.
 
 Flujo principal:
 
@@ -292,8 +277,7 @@ Validaciones y reglas
 Persistencia SQLite
 ```
 
-La lógica de negocio puede probarse directamente sin automatizar clics
-sobre la interfaz gráfica.
+La separación entre interfaz, lógica de negocio y persistencia permite mantener los componentes desacoplados y facilita su revisión.
 
 ## Persistencia
 
@@ -301,94 +285,48 @@ El sistema utiliza SQLite mediante el módulo estándar:
 
 `sqlite3`
 
-Cada conexión activa claves foráneas.
+Cada conexión activa las claves foráneas.
 
 Las operaciones críticas utilizan transacciones y rollback ante errores.
 
-La integridad puede comprobarse mediante:
+La integridad de la base puede comprobarse mediante:
 
-- `PRAGMA integrity_check`.
+- `PRAGMA integrity_check`;
 - `PRAGMA foreign_key_check`.
 
-## Ejecutar las pruebas
+## Comprobaciones internas realizadas durante el desarrollo
 
-Con el entorno virtual activado:
+Durante la Fase 2 se realizaron comprobaciones internas con pytest para apoyar la validación del desarrollo.
+
+Estas comprobaciones se utilizaron durante la construcción y revisión de la solución, pero los archivos de prueba no se incluyen como parte del ZIP de esta fase.
+
+La ejecución general utilizada durante el desarrollo fue:
 
 ```bash
 pytest -v
 ```
 
-Ejecución resumida:
-
-```bash
-pytest -q
-```
-
-## Pruebas de integración
-
-```bash
-pytest -m integracion -v
-```
-
-## Pruebas de contrato
-
-```bash
-pytest -m contrato -v
-```
-
-## Requisitos no funcionales
-
-```bash
-pytest -m rnf -v
-```
-
-## Rendimiento
-
-El requisito RNF-09 utiliza una base temporal preparada con:
-
-- 1 000 estudiantes.
-- 5 000 reservaciones.
-
-Para ejecutar la prueba:
-
-```bash
-pytest pruebas/test_rendimiento.py -v -s
-```
-
-Para conservar la evidencia:
-
-```bash
-GENERAR_EVIDENCIA_RNF09=1 pytest pruebas/test_rendimiento.py -q -s
-```
-
-La evidencia queda en:
-
-`evidencias/rnf09_rendimiento.txt`
-
-La preparación de los datos no forma parte del tiempo medido.
+La suite formal de pruebas, los casos de prueba trazables, las evidencias y los resultados de evaluación cruzada corresponden a fases posteriores del proyecto.
 
 ## Integridad de la base
 
-Puede comprobarse manualmente con:
+Puede comprobarse manualmente desde la carpeta principal del proyecto con:
 
 ```bash
-python -c "from aplicacion.persistencia import obtener_estado_integridad. print(obtener_estado_integridad())"
+python -c "from aplicacion.persistencia import obtener_estado_integridad; print(obtener_estado_integridad())"
 ```
 
-Un estado correcto debe indicar:
+Un estado correcto debe mostrar un resultado equivalente a:
 
 ```text
-integridad: ok
-claves_foraneas: []
-correcta: True
+{'integridad': 'ok', 'claves_foraneas': [], 'correcta': True}
 ```
 
 ## Codificación
 
 El proyecto utiliza UTF-8.
 
-SQLite y las exportaciones CSV deben conservar correctamente caracteres
-como:
+SQLite y las exportaciones CSV conservan caracteres como:
 
 `María Peña Muñoz`
 
@@ -400,14 +338,13 @@ Las validaciones y reglas de negocio generan errores controlados.
 
 En la interfaz gráfica, los errores se presentan mediante diálogos de Qt.
 
-Una entrada inválida no debe cerrar la aplicación ni producir
-modificaciones parciales en la base de datos.
+Una entrada inválida no debe cerrar la aplicación ni producir modificaciones parciales en la base de datos.
 
 ## Archivos generados localmente
 
-La base SQLite de trabajo no forma parte del código fuente versionado.
+La base SQLite de trabajo se genera localmente durante la ejecución y no necesita incluirse como parte del código fuente.
 
-También se excluyen del repositorio elementos locales como:
+También deben excluirse del repositorio o de la entrega los archivos y directorios temporales generados por el entorno local, por ejemplo:
 
 ```text
 .venv/
@@ -422,83 +359,33 @@ datos/*.db
 
 El código productivo no utiliza rutas personales absolutas.
 
-Las rutas necesarias se construyen a partir de la ubicación del proyecto,
-por lo que el repositorio puede ubicarse en directorios diferentes sin
-modificar el código fuente.
+Las rutas necesarias se construyen a partir de la ubicación del proyecto, por lo que puede ubicarse en directorios diferentes sin modificar el código fuente.
 
-## Versión candidata
+## Verificación básica de ejecución
 
-La versión se identifica mediante tres elementos:
-
-1. archivo `VERSION`.
-2. commit de Git.
-3. etiqueta Git correspondiente a la versión candidata.
-
-Para consultar la versión:
-
-```bash
-cat VERSION
-```
-
-Resultado esperado para esta candidata:
-
-```text
-1.0.0-rc2
-```
-
-## Verificación antes de entregar
-
-Antes de identificar una nueva versión candidata se debe ejecutar:
-
-```bash
-pytest -v
-```
-
-Luego:
-
-```bash
-python -c "from aplicacion.persistencia import obtener_estado_integridad. print(obtener_estado_integridad())"
-```
-
-Y finalmente:
+Con el entorno virtual activado y las dependencias instaladas, se puede comprobar la ejecución mediante:
 
 ```bash
 python main.py
 ```
 
-La versión candidata solamente debe etiquetarse después de confirmar que
-la suite no presenta fallos.
+La aplicación debe iniciar sin errores técnicos visibles y crear la base de datos local cuando esta no exista.
 
-## Identificación mediante Git
-
-Crear el commit de la candidata:
+La integridad de la base también puede verificarse con:
 
 ```bash
-git add README.md requirements.txt VERSION main.py pruebas/test_version_candidata.py
-git commit -m "Preparar version candidata reproducible"
-```
-
-Crear la etiqueta:
-
-```bash
-git tag -a v1.0.0-rc2 -m "Version candidata 1.0.0-rc2"
-```
-
-Publicar el commit:
-
-```bash
-git push
-```
-
-Publicar la etiqueta:
-
-```bash
-git push origin v1.0.0-rc2
+python -c "from aplicacion.persistencia import obtener_estado_integridad; print(obtener_estado_integridad())"
 ```
 
 ## Estado
 
-`1.0.0-rc2` es una versión candidata.
+`1.0.0-rc2` corresponde a la versión candidata entregada al finalizar la Fase 2.
 
-La verificación global definitiva de la Fase 2 se realiza después de esta
-preparación.
+La solución incluye el código fuente, la configuración necesaria para instalar sus dependencias, los datos iniciales definidos por el proyecto y las instrucciones de ejecución reproducible.
+
+Durante el desarrollo de esta fase también se realizaron comprobaciones internas con pytest como parte del proceso de validación del código.
+"""
+
+ruta = Path("/mnt/data/README_corregido_fase2_con_pytest.md")
+ruta.write_text(contenido, encoding="utf-8")
+print(ruta)
